@@ -1,66 +1,65 @@
-# Crenate
+# Cloud Art
 
-*A generative study in differential growth — a boundary that outgrows its own skin.*
+*A series of generative studies — each piece a different window onto the emergent, the infinite, or the living.*
+
+---
+
+## [Crenate](crenate.html)
+
+*A boundary that outgrows its own skin.*
 
 ![Six seeds of Crenate across six palettes](gallery.png)
 
-**Crenate** grows a single closed filament that accretes new material faster than its
-area can hold, and so must buckle into nested, self-avoiding folds — the same quiet
-mechanism that crimps the margin of a leaf, convolutes a cortex, and ruffles a sea
-slug. Nothing is drawn. A boundary is *grown*, and then it stops, and what remains is
-the fossil of that growth: a crenate-edged organism, shaded by depth and mottled by the
-field that fed it.
+Grows a single closed filament that accretes new material faster than its area can hold, and so must buckle into nested, self-avoiding folds — the same quiet mechanism that crimps the margin of a leaf, convolutes a cortex, and ruffles a sea slug. Nothing is drawn. A boundary is *grown*, and then it stops, and what remains is the fossil of that growth: a crenate-edged organism, shaded by depth and mottled by the field that fed it.
 
-It is pure algorithmic art — every form emerges from four small forces in tension, held
-on the short leash of a seed. The same seed always folds the same organism, node for
-node. Change the seed and the entire morphology reorganizes into a different coast, a
-different reef, a different brain.
+**Technique:** Differential growth via a spatial-hash force simulation in p5.js. Per-node Perlin growth accumulators, Laplacian smoothing, cohesion/repulsion springs. Seeded and fully reproducible.
 
-## Open it
+**Default seed 1917** — the year D'Arcy Thompson's *On Growth and Form* argued that living shape is the work of physical forces, not drafting.
 
-Open [`crenate.html`](crenate.html) in any modern browser. Nothing to install — p5.js
-loads from a CDN and everything else is inline and self-contained. Watch the boundary
-grow and fold in real time; when it settles it renders the finished plate.
+**→ [Open Crenate](crenate.html)** | [Philosophy](philosophy/crenate.md)
 
-## The controls
+---
 
-**Seed** — step through organisms with ‹ ›, roll the dice, or jump to a number.
-(Arrow keys ← → also step seeds.)
+## [Vermiculate](vermiculate.html)
 
-**Form**
-| Control | What it tunes |
-|---|---|
-| Density | how much material the organism accretes (how full it gets) |
-| Filament spacing | how finely the boundary is sampled |
-| Fold spacing | the gap repulsion keeps between neighbouring folds — the openness |
-| Cohesion | how tightly the filament holds itself together |
-| Smoothing | how graceful vs. jagged the line is |
-| Growth rate | how fast new material arrives (slow = open & relaxed, fast = tight) |
-| Growth bias | the *un*evenness of growth — what drives the lobes and bays |
-| Lobe scale | the size of the hungry / quiet regions |
-| Turbulence | brownian breath that seeds the buckling |
+*Two chemicals, an eternal dance.*
 
-**Palette** — six curated palettes, or hand-tune the ground, edge, core, and line
-colours. Coloring maps a dark **core** outward to a lobed **edge**, mottled by the same
-field that drove the growth.
+The Gray-Scott reaction-diffusion model: two chemicals A and B share a medium. B autocatalyzes (feeds on A and itself), while A is continuously replenished and B is continuously removed. Out of feed rate, kill rate, and diffusion alone — no blueprint, no instruction — the field discovers its own morphology: spots, stripes, mazes, spirals, labyrinthine convolutions. Every run from a new seed produces a new spatial arrangement of the same chemical grammar.
 
-**Actions** — Regenerate, Reset to defaults, and Download a PNG of the current plate.
+**Technique:** WebGL 2.0 ping-pong framebuffers. Gray-Scott equations in a GLSL compute shader, evaluated at 512×512 per step. Toroidal boundary conditions allow infinite zoom and pan through the living field. Click to disturb; scroll to zoom into the pattern's own intricate sub-structure.
 
-## Reproducibility
+**Default seed 1952** — the year Alan Turing's *The Chemical Basis of Morphogenesis* predicted that pattern could arise from diffusion and reaction alone.
 
-Seeded randomness (`randomSeed` + `noiseSeed`) drives everything, and growth advances a
-fixed number of deterministic steps, so a given seed + parameters always produces the
-identical organism. Share a seed; share the artwork.
+**→ [Open Vermiculate](vermiculate.html)** | [Philosophy](philosophy/vermiculate.md)
 
-## A quiet note
+---
 
-The default seed is **1917** — the year a certain monograph *On Growth and Form* argued
-that living shape is the work of physical forces and growth differentials, not drafting.
-That is the whole of this piece's philosophy, and it is felt rather than announced.
-Those who know will catch it; everyone else simply gets an organism.
+## [Abyss](abyss.html)
+
+*z → z² + c — where does it end?*
+
+The Mandelbrot set, rendered in GLSL with smooth iteration-count coloring and orbit-trap depth layers. Its boundary is a fractal of Hausdorff dimension 2: a curve so convoluted it occupies area while having zero area. Navigate toward any feature and it never resolves — every zoom reveals new structure at the new scale, without end, because that is what the mathematics guarantees. Click anywhere in Mandelbrot mode to open the Julia set for that parameter, exploring the infinite catalogue of Julia set shapes indexed by the Mandelbrot set itself.
+
+**Technique:** WebGL 2.0 fragment shader with per-pixel Mandelbrot/Julia iteration, Hubbard-Douady smooth escape count, orbit-trap ring and axis-proximity layers. Cosine palette with animatable color phase. Zoom range 1× to ~10⁶×.
+
+**→ [Open Abyss](abyss.html)** | [Philosophy](philosophy/abyss.md)
+
+---
+
+## Running
+
+Open any `.html` file directly in a modern browser. No install, no server — each piece is fully self-contained. Crenate uses p5.js from a CDN; Vermiculate and Abyss require WebGL 2.0 (Chrome 56+, Firefox 51+, Safari 15+).
 
 ## Files
 
-- [`crenate.html`](crenate.html) — the complete, self-contained interactive artwork
-- [`philosophy/crenate.md`](philosophy/crenate.md) — the algorithmic philosophy / manifesto
-- `gallery.png`, `preview-seed1917.png` — reference renders generated from the algorithm
+```
+crenate.html              differential growth (p5.js)
+vermiculate.html          reaction-diffusion (WebGL 2)
+abyss.html                fractal zoom (WebGL 2)
+philosophy/
+  crenate.md              algorithmic philosophy
+  vermiculate.md          algorithmic philosophy
+  abyss.md                algorithmic philosophy
+gallery.png               Crenate contact sheet (6 seeds × 6 palettes)
+preview-seed1917.png      Crenate hero render
+```

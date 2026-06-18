@@ -1,0 +1,21 @@
+# Vermiculate
+
+> *An algorithmic philosophy on the spontaneous emergence of pattern from the mathematics of diffusion and desire.*
+
+## The Movement
+
+**Vermiculate** — from *vermiculatus*, worm-eaten, tracing the wandering channels of something that was digested and is gone — names the family of forms produced when two hypothetical chemicals share a medium and refuse to coexist peacefully. Chemical A is the substrate, the potential, the everywhere-abundance. Chemical B is the activator, the catalyst, the hungry thing that feeds on A and, critically, feeds on *itself*: a molecule of B and two molecules of A collide and produce three molecules of B. This autocatalytic loop would consume everything, except that B also hastens its own demise through a kill reaction, and A is continuously replenished by a feed from outside. Out of these few constraints — diffusion, autocatalysis, inhibition, feed, kill — a living tension is sustained. The field can neither empty nor fill. It buckles into negotiation.
+
+The negotiation produces patterns. Not random noise, not imposed geometry, but *morphology*: spatial structure that the chemistry itself discovers, as the activator's desire to spread is constantly outrun by its cost. Pearson catalogued the menagerie in 1993 — spots, stripes, spirals, mazes, labyrinthine convolutions, spots that split like mitosing cells — and showed that the entire taxonomy is controlled by just two numbers: the feed rate that replenishes A, and the kill rate that removes B. Vermiculate is that catalogue made navigable: a field at whatever coordinates of chemistry you choose, growing its particular character in real time, always from a different initial seed, always finding the same family of forms.
+
+## The Computation
+
+The mathematics is two partial differential equations, each a diffusion term plus a reaction term, evaluated on a finite grid at each timestep by a GPU fragment shader. The diffusion is a discrete Laplacian — each cell feels the pull of its four neighbors — and the reaction is the autocatalytic law, evaluated at every point simultaneously on thousands of parallel cores. There is no sequential logic here, no step-by-step instruction. Every cell is updated at once by the same rules, and the pattern is what they collectively negotiate. This is computation as physics: laws propagating, not instructions executing.
+
+The boundary conditions are toroidal — the grid wraps in both directions, the simulation lives on the surface of a torus — which means the field is, in principle, infinite. Zoom into any corner and find the same texture. Step the simulation back and the same seed always grows the same pattern. Step forward and the pattern evolves: spots migrate, stripes anneal, mazes deepen. Disturb the field with a click and watch the perturbation ripple outward, absorbed into the ongoing chemistry like a stone dropped into a tide pool. The system has memory, because the diffusion couples every cell to every other cell through continuous gradient pressure, but it has no grudge: it returns, eventually, to something indistinguishable from steady state.
+
+## The Discipline
+
+The deepest fact about Vermiculate is that it requires nothing but laws. The specific pattern in any run is not designed, not placed, not composed. It is the *eigenstate* of the chemistry — the shape the system falls into when the forces balance. Different seeds perturb the initial conditions but not the attractor; the mature pattern is controlled almost entirely by the feed and kill rates, not by where you started. This is the mathematical definition of emergence: a global regularity that is nowhere in the local rules, produced entirely by their interaction.
+
+Turing predicted this in 1952. *The Chemical Basis of Morphogenesis* argued that the spots and stripes of animal coats, the spirals of phyllotaxis, the whorls of fingerprints, could all arise from diffusion and reaction alone, without any blueprint, without any cellular knowledge of the whole. He called the hypothetical chemicals morphogens. He did not live to see the confirmation. Vermiculate is a quiet memorial to that prediction: the 1952 seed is the default not because it was chosen, but because it was *there first*, the year the mathematics proved that pattern needs no author.
