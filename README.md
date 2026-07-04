@@ -46,9 +46,29 @@ The Mandelbrot set, rendered in GLSL with smooth iteration-count coloring and or
 
 ---
 
+## [Nubilous](nubilous.html)
+
+*The sky, taught to happen again.*
+
+![A volumetric cumulus deck at golden hour](preview-nubilous-sky.png)
+
+Clouds are the oldest generative system: a noise field (humidity), a threshold rule (saturation), and external forces (wind shear, convection, sunlight) producing four billion years of non-repeating form. Nubilous runs that machine honestly — a raymarched volumetric atmosphere whose cloud base is derived from temperature and dewpoint, whose towers lean with the wind shear, whose light is Beer-Lambert extinction and forward scattering, not paint. Name a real place and the piece fetches its actual sky — cloud cover by altitude, winds at four pressure levels, the sun where it truly stands — and grows it in time-lapse.
+
+Then the abstraction: **Synoptic mode** throws away the light and keeps the law. The identical density field is re-read as drifting altitude-stacked isopleths — a weather chart of its own imaginary sky, each contour terrace sliding at its altitude's own wind. Same physics, different flesh.
+
+![The same atmosphere re-read as drifting contour terraces](preview-nubilous-synoptic.png)
+
+**Technique:** WebGL 2.0 raymarcher over GPU-baked tiling Perlin-Worley 3-D noise textures. Dual-lobe Henyey-Greenstein phase, powder darkening, multi-octave light march, solar position from date and latitude. Live weather from the keyless Open-Meteo API (fetched by your browser; falls back to manual skies). Seeded and fully reproducible.
+
+**Default seed 1802** — the year Luke Howard named the clouds, and the formless became a taxonomy.
+
+**→ [Open Nubilous](nubilous.html)** | [Philosophy](philosophy/nubilous.md)
+
+---
+
 ## Running
 
-Open any `.html` file directly in a modern browser. No install, no server — each piece is fully self-contained. Crenate uses p5.js from a CDN; Vermiculate and Abyss require WebGL 2.0 (Chrome 56+, Firefox 51+, Safari 15+).
+Open any `.html` file directly in a modern browser. No install, no server — each piece is fully self-contained. Crenate uses p5.js from a CDN; Vermiculate, Abyss and Nubilous require WebGL 2.0 (Chrome 56+, Firefox 51+, Safari 15+). Nubilous works fully offline with manual skies; live weather needs network access to the free, keyless open-meteo.com API.
 
 ## Files
 
@@ -56,10 +76,14 @@ Open any `.html` file directly in a modern browser. No install, no server — ea
 crenate.html              differential growth (p5.js)
 vermiculate.html          reaction-diffusion (WebGL 2)
 abyss.html                fractal zoom (WebGL 2)
+nubilous.html             volumetric weather (WebGL 2 + live data)
 philosophy/
   crenate.md              algorithmic philosophy
   vermiculate.md          algorithmic philosophy
   abyss.md                algorithmic philosophy
+  nubilous.md             algorithmic philosophy
 gallery.png               Crenate contact sheet (6 seeds × 6 palettes)
 preview-seed1917.png      Crenate hero render
+preview-nubilous-sky.png       Nubilous sky-mode render
+preview-nubilous-synoptic.png  Nubilous synoptic-mode render
 ```

@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nubilous — volumetric weather</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  /* ===========================================================
+     PHOSPHOR TERMINAL THEME — matches yptox.com / nointernet.com.au
+     #1a1a1a base · #00ff00 phosphor · VT323 + Press Start 2P
+     cyan #6bc7ff accent (from no-internet)
+     =========================================================== */
+  :root{
+    --bg:#1a1a1a;
+    --bg-deep:#0c0c0c;
+    --panel:#141414;
+    --panel-soft:#0e120e;
+    --ink:#00ff00;
+    --ink-soft:#19c219;
+    --muted:#3f8f3f;
+    --line:#1f3d1f;
+    --line-dash:#2f5a2f;
+    --accent:#39ff14;
+    --accent-deep:#008f11;
+    --accent-wash:#0c2a12;
+    --cyan:#6bc7ff;
+    --cyan-deep:#2f6f9e;
+    --glow:0 0 6px rgba(0,255,0,.45);
+    --mono:'VT323',ui-monospace,monospace;
+    --pixel:'Press Start 2P',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:var(--mono);
+    color:var(--ink);
+    background:var(--bg);
+    font-size:19px;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:9998;pointer-events:none;
+    background:repeating-linear-gradient(0deg,
+      rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px,
+      rgba(0,0,0,.13) 3px, rgba(0,0,0,0) 4px);
+    opacity:.55;
+  }
+  ::selection{background:var(--accent-deep);color:#000}
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;align-items:center;gap:14px;
+    padding:13px 24px;
+    background:#111;
+    border-bottom:2px solid var(--line);
+    position:sticky;top:0;z-index:10;
+  }
+  .mark{flex:0 0 auto;display:block;filter:drop-shadow(0 0 5px rgba(0,255,0,.55))}
+  .titlewrap{display:flex;flex-direction:column;gap:7px;line-height:1}
+  .title{
+    font-family:var(--pixel);font-weight:400;font-size:15px;letter-spacing:1px;
+    color:var(--ink);text-shadow:0 0 9px rgba(0,255,0,.55);
+  }
+  .subtitle{font-family:var(--mono);font-size:17px;color:var(--muted);letter-spacing:.5px}
+  .header-spacer{flex:1}
+  .badge{
+    font-family:var(--mono);font-size:16px;color:var(--cyan);
+    border:1px solid var(--cyan-deep);border-radius:0;padding:2px 10px;background:#0b1620;
+    letter-spacing:1px;
+  }
+  .badge::before{content:"[ "}
+  .badge::after{content:" ]"}
+
+  /* ---------- Layout ---------- */
+  .app{display:flex;min-height:calc(100vh - 60px)}
+  aside{
+    width:336px;flex:0 0 336px;
+    background:var(--panel);
+    border-right:2px solid var(--line);
+    padding:22px 20px 30px;
+    overflow-y:auto;height:calc(100vh - 60px);
+    position:sticky;top:60px;
+  }
+  main{
+    flex:1;display:flex;align-items:center;justify-content:center;padding:34px;
+    background:
+      radial-gradient(900px 620px at 50% -12%, #14210f 0%, rgba(20,33,15,0) 62%),
+      #0c0c0c;
+  }
+  .stage{
+    width:100%;max-width:1240px;aspect-ratio:16/9;
+    border-radius:0;overflow:hidden;
+    border:1px solid var(--line);
+    box-shadow:0 0 0 1px #000, 0 0 52px rgba(0,255,0,.08), inset 0 0 40px rgba(0,0,0,.55);
+    background:#000;position:relative;cursor:grab;
+  }
+  .stage.dragging{cursor:grabbing}
+  .stage canvas{width:100% !important;height:100% !important;display:block}
+
+  /* ---------- Pills (status overlays) ---------- */
+  .info-pill{
+    position:absolute;bottom:14px;left:14px;z-index:3;
+    display:flex;align-items:center;gap:10px;
+    font-family:var(--mono);font-size:15px;
+    color:var(--ink);background:rgba(6,16,6,.80);
+    border:1px solid var(--line);
+    padding:3px 11px;border-radius:0;letter-spacing:.5px;
+    pointer-events:none;transition:opacity .4s;
+    text-shadow:0 0 5px rgba(0,255,0,.4);
+  }
+  .info-pill span{opacity:.85}
+  .info-pill em{font-style:normal;opacity:.45}
+  .loading-pill{
+    position:absolute;top:14px;right:14px;z-index:3;
+    font-family:var(--mono);font-size:15px;color:var(--cyan);
+    background:rgba(6,12,20,.85);border:1px solid var(--cyan-deep);
+    padding:3px 11px;letter-spacing:.5px;pointer-events:none;
+    display:none;
+  }
+  .loading-pill.show{display:block}
+
+  /* ---------- Sidebar sections ---------- */
+  .section{margin-bottom:24px}
+  .section-head{
+    font-family:var(--pixel);font-weight:400;font-size:10px;letter-spacing:1px;
+    text-transform:uppercase;color:var(--accent-deep);margin:0 0 15px;
+    display:flex;align-items:center;gap:10px;
+    text-shadow:0 0 7px rgba(0,143,17,.5);
+  }
+  .section-head::before{content:"//"}
+  .section-head::after{content:"";flex:1;height:0;border-top:1px dashed var(--line-dash)}
+
+  /* Seed */
+  .seed-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .seed-display{
+    flex:1;font-family:var(--mono);font-weight:400;font-size:27px;
+    background:#0a0f0a;border:1px solid var(--line);border-radius:0;
+    padding:2px 14px;text-align:center;letter-spacing:3px;color:var(--ink);
+    text-shadow:var(--glow);
+  }
+  .iconbtn{
+    width:40px;height:40px;flex:0 0 auto;border:1px solid var(--line);background:var(--panel-soft);
+    border-radius:0;cursor:pointer;font-size:20px;color:var(--ink);
+    display:flex;align-items:center;justify-content:center;transition:.12s;font-family:var(--mono);
+  }
+  .iconbtn:hover{background:var(--accent-wash);border-color:var(--accent-deep);color:var(--accent);box-shadow:var(--glow)}
+  .iconbtn:active{transform:translateY(1px)}
+  .seed-jump{display:flex;gap:8px}
+  .seed-jump input{
+    flex:1;min-width:0;font-family:var(--mono);font-size:19px;
+    border:1px solid var(--line);border-radius:0;padding:3px 12px;background:#0a0f0a;color:var(--ink);
+  }
+  .seed-jump input:focus{outline:none;border-color:var(--accent-deep);box-shadow:0 0 0 1px var(--accent-deep),0 0 10px rgba(0,255,0,.25)}
+
+  /* Buttons */
+  .btn{
+    font-family:var(--mono);font-weight:400;font-size:19px;cursor:pointer;
+    border-radius:0;padding:3px 14px;border:1px solid var(--line);background:var(--panel-soft);
+    color:var(--ink);transition:.12s;letter-spacing:.5px;
+  }
+  .btn:hover{background:var(--accent-wash);border-color:var(--accent-deep);color:var(--accent);box-shadow:var(--glow)}
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:#0a0f0a}
+
+  /* preset / mode chips */
+  .presets{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px}
+  .preset-btn{
+    font-family:var(--mono);font-size:18px;font-weight:400;
+    padding:1px 11px;border:1px solid var(--line);border-radius:0;
+    background:var(--panel-soft);color:var(--ink);cursor:pointer;transition:.12s;letter-spacing:.5px;
+  }
+  .preset-btn:hover{background:var(--accent-wash);border-color:var(--accent-deep);color:var(--accent)}
+  .preset-btn.active{background:#0b1620;border-color:var(--cyan-deep);color:var(--cyan);box-shadow:0 0 8px rgba(107,199,255,.3)}
+  .mode-row{display:flex;gap:8px;margin-bottom:8px}
+  .mode-btn{
+    flex:1;font-family:var(--mono);font-size:19px;font-weight:400;
+    padding:4px 8px;border:1px solid var(--line);border-radius:0;
+    background:var(--panel-soft);color:var(--ink);cursor:pointer;transition:.12s;text-align:center;
+  }
+  .mode-btn:hover{background:var(--accent-wash);border-color:var(--accent-deep);color:var(--accent)}
+  .mode-btn.active{background:#0b1620;border-color:var(--cyan-deep);color:var(--cyan);box-shadow:0 0 8px rgba(107,199,255,.3)}
+  .btn::before,.preset-btn::before,.mode-btn::before{content:"[ ";opacity:.5}
+  .btn::after,.preset-btn::after,.mode-btn::after{content:" ]";opacity:.5}
+
+  /* Parameters */
+  .control-group{margin-bottom:14px}
+  .control-group label{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:var(--mono);font-size:19px;color:var(--ink);margin-bottom:5px;letter-spacing:.5px;
+  }
+  .value-display{
+    font-family:var(--mono);font-weight:400;font-size:17px;color:var(--cyan);
+    background:#0b1620;border:1px solid var(--cyan-deep);border-radius:0;padding:0 8px;min-width:48px;text-align:center;
+  }
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:0;
+    background:linear-gradient(90deg,var(--accent) 0%,var(--accent) var(--fill,40%),#0c2a12 var(--fill,40%),#0c2a12 100%);
+    border:1px solid var(--line);
+    outline:none;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:11px;height:20px;border-radius:0;
+    background:var(--ink);border:1px solid #003f00;box-shadow:0 0 8px rgba(0,255,0,.65);cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:11px;height:20px;border-radius:0;background:var(--ink);border:1px solid #003f00;
+    box-shadow:0 0 8px rgba(0,255,0,.65);cursor:pointer;
+  }
+  input[type=range]::-moz-range-track{height:8px;border-radius:0;background:#0c2a12}
+
+  /* Palette swatches */
+  .swatches{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .swatch{
+    width:34px;height:34px;border-radius:0;cursor:pointer;border:1px solid var(--line);
+    box-shadow:0 0 0 1px #000;transition:.12s;position:relative;
+  }
+  .swatch:hover{transform:translateY(-2px);box-shadow:0 0 10px rgba(0,255,0,.3)}
+  .swatch.active{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan),0 0 10px rgba(107,199,255,.4)}
+
+  /* Location box */
+  .loc-row{display:flex;gap:8px;margin-bottom:10px}
+  .loc-row input{
+    flex:1;min-width:0;font-family:var(--mono);font-size:19px;
+    border:1px solid var(--line);border-radius:0;padding:3px 12px;background:#0a0f0a;color:var(--ink);
+  }
+  .loc-row input:focus{outline:none;border-color:var(--accent-deep);box-shadow:0 0 0 1px var(--accent-deep),0 0 10px rgba(0,255,0,.25)}
+  .loc-actions{display:flex;gap:8px;margin-bottom:10px}
+  .loc-actions .btn{flex:1;text-align:center;font-size:17px}
+  .wx-box{
+    font-family:var(--mono);font-size:16px;line-height:1.55;color:var(--muted);
+    background:#0a0f0a;border:1px solid var(--line);padding:8px 12px;letter-spacing:.4px;
+    white-space:pre-wrap;
+  }
+  .wx-box .wx-place{color:var(--cyan)}
+  .wx-box .wx-live{color:var(--accent)}
+  .wx-box .wx-stale{color:#b8a44a}
+  .wx-box .wx-err{color:#ff5f56}
+
+  /* Actions */
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .actions .btn{width:100%;text-align:center}
+  .actions .primary{
+    grid-column:1 / -1;background:var(--accent-wash);border-color:var(--accent-deep);color:var(--accent);font-weight:400;
+    text-shadow:var(--glow);
+  }
+  .actions .primary:hover{background:#0f3a18;border-color:var(--accent);box-shadow:0 0 14px rgba(0,255,0,.35)}
+
+  .hint{font-family:var(--mono);font-size:17px;color:var(--muted);margin-top:14px;line-height:1.4;letter-spacing:.3px}
+  .hint::before{content:"> ";color:var(--accent-deep)}
+
+  .err{display:none;position:absolute;inset:0;background:#0a0a0a;color:#ff5f56;font-family:var(--mono);font-size:19px;align-items:center;justify-content:center;text-align:center;padding:30px;line-height:1.6}
+  .err.show{display:flex}
+
+  aside::-webkit-scrollbar{width:12px}
+  aside::-webkit-scrollbar-track{background:#0b0b0b}
+  aside::-webkit-scrollbar-thumb{background:#1f3d1f;border-radius:0;border:3px solid var(--panel)}
+
+  @media (max-width:880px){
+    .app{flex-direction:column}
+    aside{width:100%;flex:none;height:auto;position:static;border-right:none;border-bottom:2px solid var(--line)}
+    main{padding:18px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <svg class="mark" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+    <g fill="none" stroke="#00ff00" stroke-width="2" stroke-linecap="round">
+      <path d="M8 20 a5 5 0 1 1 1.5 -9.8 a6.5 6.5 0 0 1 12.6 1.4 a4.5 4.5 0 0 1 -0.6 8.4 z"/>
+      <path d="M9 24 h3 M15 24 h3 M21 24 h3" opacity=".7"/>
+    </g>
+  </svg>
+  <div class="titlewrap">
+    <span class="title">Nubilous</span>
+    <span class="subtitle">volumetric weather — water negotiating with wind</span>
+  </div>
+  <div class="header-spacer"></div>
+  <span class="badge">generative &middot; live weather &middot; WebGL</span>
+</header>
+
+<div class="app">
+<aside>
+
+  <div class="section">
+    <p class="section-head">Mode</p>
+    <div class="mode-row">
+      <button class="mode-btn active" id="mode-sky">Sky</button>
+      <button class="mode-btn" id="mode-chart">Synoptic</button>
+    </div>
+    <div class="presets" id="quality-list"></div>
+  </div>
+
+  <div class="section">
+    <p class="section-head">Location</p>
+    <div class="loc-row">
+      <input type="text" id="loc-input" placeholder="Search a place&hellip;" autocomplete="off">
+      <button class="btn" id="btn-loc-go">Go</button>
+    </div>
+    <div class="loc-actions">
+      <button class="btn ghost" id="btn-geoloc">Locate me</button>
+      <button class="btn ghost" id="btn-refresh">Refresh</button>
+    </div>
+    <div class="wx-box" id="wx-box">no station &mdash; manual sky
+use search or locate to
+summon real weather</div>
+  </div>
+
+  <div class="section">
+    <p class="section-head">Sky presets</p>
+    <div class="presets" id="preset-list"></div>
+  </div>
+
+  <div class="section">
+    <p class="section-head">Atmosphere</p>
+    <div class="control-group">
+      <label>Low cloud <span class="value-display" id="val-covLow">42%</span></label>
+      <input type="range" id="sl-covLow" min="0" max="1" step="0.01" value="0.42">
+    </div>
+    <div class="control-group">
+      <label>Mid cloud <span class="value-display" id="val-covMid">18%</span></label>
+      <input type="range" id="sl-covMid" min="0" max="1" step="0.01" value="0.18">
+    </div>
+    <div class="control-group">
+      <label>High cloud <span class="value-display" id="val-covHigh">25%</span></label>
+      <input type="range" id="sl-covHigh" min="0" max="1" step="0.01" value="0.25">
+    </div>
+    <div class="control-group">
+      <label>Cloud base <span class="value-display" id="val-base">0.9 km</span></label>
+      <input type="range" id="sl-base" min="0.15" max="3" step="0.05" value="0.9">
+    </div>
+    <div class="control-group">
+      <label>Convection <span class="value-display" id="val-conv">0.55</span></label>
+      <input type="range" id="sl-conv" min="0" max="1" step="0.01" value="0.55">
+    </div>
+    <div class="control-group">
+      <label>Haze <span class="value-display" id="val-haze">0.25</span></label>
+      <input type="range" id="sl-haze" min="0" max="1" step="0.01" value="0.25">
+    </div>
+    <div class="control-group">
+      <label>Density <span class="value-display" id="val-dens">1.00</span></label>
+      <input type="range" id="sl-dens" min="0.3" max="2" step="0.01" value="1.0">
+    </div>
+    <div class="control-group">
+      <label>Rain <span class="value-display" id="val-precip">0</span></label>
+      <input type="range" id="sl-precip" min="0" max="1" step="0.01" value="0">
+    </div>
+  </div>
+
+  <div class="section">
+    <p class="section-head">Wind</p>
+    <div class="control-group">
+      <label>Speed <span class="value-display" id="val-windKmh">18 km/h</span></label>
+      <input type="range" id="sl-windKmh" min="0" max="120" step="1" value="18">
+    </div>
+    <div class="control-group">
+      <label>Direction (from) <span class="value-display" id="val-windDeg">250&deg;</span></label>
+      <input type="range" id="sl-windDeg" min="0" max="360" step="1" value="250">
+    </div>
+    <div class="control-group">
+      <label>Shear <span class="value-display" id="val-shear">0.35</span></label>
+      <input type="range" id="sl-shear" min="0" max="1" step="0.01" value="0.35">
+    </div>
+  </div>
+
+  <div class="section">
+    <p class="section-head">Light &amp; time</p>
+    <div class="control-group">
+      <label>Hour <span class="value-display" id="val-hour">14:36</span></label>
+      <input type="range" id="sl-hour" min="0" max="24" step="0.05" value="14.6">
+    </div>
+    <div class="control-group">
+      <label>Time-lapse <span class="value-display" id="val-tempo">25&times;</span></label>
+      <input type="range" id="sl-tempo" min="1" max="90" step="1" value="25">
+    </div>
+  </div>
+
+  <div class="section" id="palette-section" style="display:none">
+    <p class="section-head">Palette</p>
+    <div class="swatches" id="palette-list"></div>
+  </div>
+
+  <div class="section">
+    <p class="section-head">Seed</p>
+    <div class="seed-row">
+      <button class="iconbtn" id="btn-prev" title="Previous seed (&larr;)">&#8249;</button>
+      <div class="seed-display" id="seed-display">1802</div>
+      <button class="iconbtn" id="btn-next" title="Next seed (&rarr;)">&#8250;</button>
+      <button class="iconbtn" id="btn-rand" title="Random seed">&#9861;</button>
+    </div>
+    <div class="seed-jump">
+      <input type="number" id="seed-input" min="1" max="99999" placeholder="Jump to&hellip;">
+      <button class="btn" id="btn-jump">Go</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <p class="section-head">Actions</p>
+    <div class="actions">
+      <button class="btn primary" id="btn-playpause">Pause</button>
+      <button class="btn ghost" id="btn-resetview">Reset view</button>
+      <button class="btn ghost" id="btn-download">Download PNG</button>
+    </div>
+    <p class="hint">Drag to look &middot; scroll to zoom &middot; arrow keys step seeds &middot; space pauses. Synoptic mode redraws the same atmosphere as a drifting contour chart.</p>
+  </div>
+
+</aside>
+
+<main>
+  <div class="stage" id="stage">
+    <canvas id="c"></canvas>
+    <div class="err" id="err-msg"></div>
+    <div class="loading-pill" id="loading-pill">building noise fields&hellip;</div>
+    <div class="info-pill" id="info-pill">
+      <span id="info-sun">sun &mdash;</span><em>&middot;</em>
+      <span id="info-wind">wind &mdash;</span><em>&middot;</em>
+      <span id="info-cov">cover &mdash;</span>
+    </div>
+  </div>
+</main>
+</div>
+
+<script>
+'use strict';
+
+/* ======================================================
+   CONFIGURATION
+   ====================================================== */
+const DEFAULT_SEED = 1802;   // the year Luke Howard named the clouds
+
+// Sky archetypes — hand-tuned states of the same machine.
+const PRESETS = [
+  { name:'Fair',     p:{ covLow:.28, covMid:.08, covHigh:.15, base:1.15, conv:.50, haze:.18, dens:.90, precip:0,   windKmh:14, shear:.30 } },
+  { name:'Cotton',   p:{ covLow:.50, covMid:.10, covHigh:.10, base:.90,  conv:.68, haze:.22, dens:1.05, precip:0,  windKmh:20, shear:.35 } },
+  { name:'Overcast', p:{ covLow:.92, covMid:.42, covHigh:.30, base:.45,  conv:.10, haze:.55, dens:.85, precip:.15, windKmh:24, shear:.20 } },
+  { name:'Storm',    p:{ covLow:.80, covMid:.55, covHigh:.55, base:.55,  conv:1.0, haze:.60, dens:1.35, precip:.85,windKmh:42, shear:.60 } },
+  { name:'Mackerel', p:{ covLow:.06, covMid:.75, covHigh:.20, base:1.0,  conv:.30, haze:.15, dens:1.0, precip:0,   windKmh:16, shear:.45 } },
+  { name:'Feathers', p:{ covLow:.04, covMid:.06, covHigh:.80, base:1.2,  conv:.30, haze:.10, dens:1.0, precip:0,   windKmh:12, shear:.70 } },
+];
+
+// Synoptic-mode palettes (shared vocabulary with the rest of the series)
+const PALETTES = [
+  { name:'Phosphor', c:['#040804','#0a3d16','#179a2b','#4dff4a','#cfffce'] },
+  { name:'Vellum',   c:['#EFE7D6','#D9A86E','#C86030','#7A2E0E','#20100A'] },
+  { name:'Tidepool', c:['#0A1620','#163850','#2E7E8E','#7BC8D4','#CFF3EC'] },
+  { name:'Foxglove', c:['#F6F1F3','#E0B0C8','#C16A8E','#7A2E6E','#260F2A'] },
+  { name:'Cinder',   c:['#10100E','#5A2010','#B44020','#E8A030','#FBF5D8'] },
+  { name:'Glacier',  c:['#EEF3F5','#A8C8E0','#5080A0','#284870','#0C1828'] },
+];
+
+const QUALITIES = [
+  { name:'Draft',    scale:0.40 },
+  { name:'Balanced', scale:0.60 },
+  { name:'Fine',     scale:0.85 },
+];
+
+// Mutable atmosphere state. Everything the shaders know about the weather.
+const P = {
+  covLow:.42, covMid:.18, covHigh:.25,
+  base:.9, conv:.55, haze:.25, dens:1.0, precip:0,
+  windKmh:18, windDeg:250, shear:.35,
+  hour:14.6, tempo:25,
+  // per-layer winds — null means "derive from surface wind + shear"
+  windMidKmh:null, windMidDeg:null, windHighKmh:null, windHighDeg:null,
+};
+const LOC = { lat:-33.87, lon:151.21, label:null, live:false, fetchedAt:0 };
+
+/* ======================================================
+   GLSL — shared atmosphere
+   One density field, two renderers. The Sky shader marches
+   it with physical light transport; the Synoptic shader
+   slices the very same field into drifting isopleths.
+   ====================================================== */
+
+const VERT_SRC = `#version 300 es
+in vec2 a_pos;
+out vec2 v_uv;
+void main(){ v_uv = a_pos*0.5+0.5; gl_Position = vec4(a_pos,0.,1.); }`;
+
+// ---- common chunk: uniforms + noise + the cloud density field ----
+const COMMON = `
+precision highp float;
+precision highp sampler3D;
+uniform vec2  u_res;
+uniform float u_time;         // sky-seconds (already time-lapsed)
+uniform vec3  u_camPos, u_camFwd, u_camRight, u_camUp;
+uniform float u_fovTan, u_aspect;
+uniform vec3  u_sunDir, u_sunCol, u_zen, u_hor;
+uniform float u_night, u_expo;
+uniform float u_covLow, u_covMid, u_covHigh;
+uniform float u_baseKm, u_thick, u_conv, u_haze, u_dens, u_precip;
+uniform vec2  u_ofsLow, u_ofsMid, u_ofsHigh;   // accumulated advection (km)
+uniform vec2  u_shearV, u_hiDir;
+uniform vec3  u_seed3;
+uniform sampler3D u_texBase, u_texDtl;
+
+#define SAT(x) clamp(x,0.,1.)
+float remap(float v,float a,float b,float c,float d){ return c+SAT((v-a)/(b-a))*(d-c); }
+float hash12(vec2 p){ vec3 q=fract(vec3(p.xyx)*.1031); q+=dot(q,q.yzx+33.33); return fract((q.x+q.y)*q.z); }
+float vn2(vec2 p){
+  vec2 i=floor(p), f=fract(p), u=f*f*(3.-2.*f);
+  return mix(mix(hash12(i),hash12(i+vec2(1,0)),u.x),
+             mix(hash12(i+vec2(0,1)),hash12(i+vec2(1,1)),u.x),u.y);
+}
+float fbm2(vec2 p){
+  float a=.5, s=0.;
+  for(int i=0;i<5;i++){ s+=a*vn2(p); p=mat2(1.6,1.2,-1.2,1.6)*p; a*=.5; }
+  return s*1.03;
+}
+
+/* Coverage: where the humid air is. A 2-D weather field advected by wind. */
+float covLowAt(vec2 xz){
+  float c=fbm2((xz+u_ofsLow)*0.07 + u_seed3.xy);
+  c=SAT(remap(c, 1.02-u_covLow*1.12, 1., 0., 1.));
+  return pow(c, mix(.55,1.6,u_conv));      // stratiform sheets vs scattered towers
+}
+
+/* Low deck: cumulus / stratus / storm, all one recipe.
+   h<0 is the virga zone — rain streaks below cloud base. */
+float mapLow(vec3 p, float lod, bool dtl){
+  float h=(p.y-u_baseKm)/u_thick;
+  if(h>1.02) return 0.;
+  vec2 sxz=p.xz - u_shearV*SAT(h);         // wind shear leans the towers
+  float cov=covLowAt(sxz);
+  if(h>=0.0 && cov<=0.004) return 0.;
+  if(h<0.0){                               // ---- virga / rain shafts ----
+    float rainExt=u_precip*1.3;            // how far the rain reaches down (km)
+    if(rainExt<=0.01) return 0.;
+    float rf=1.+h*u_thick/rainExt;         // 1 at base, 0 at shaft tip
+    if(rf<=0.) return 0.;
+    float streak=vn2(sxz*2.2+u_ofsLow*3.);
+    return cov*u_precip*0.035*rf*smoothstep(.5,.85,streak)*u_dens;
+  }
+  // local top height: high coverage builds tall; low convection flattens all
+  float tHat=mix(1.0, mix(.30,1.,SAT(cov*1.35)), u_conv);
+  float botSoft=mix(.28,.06,u_conv);       // stratus fades in, cumulus has a hard floor
+  float topSoft=mix(.72,.52,u_conv);
+  float prof=smoothstep(0.,botSoft,h)*(1.-smoothstep(tHat*topSoft,tHat,h));
+  if(prof<=0.001) return 0.;
+  vec2 axz=sxz+u_ofsLow;
+  vec3 q=vec3(axz.x, p.y*1.35, axz.y)*0.15 + u_seed3;
+  vec4 nz=textureLod(u_texBase,q,lod);
+  float wf=dot(nz.gba,vec3(.625,.25,.125));
+  float shape=SAT(remap(nz.r, wf-1., 1., 0., 1.));
+  float d=SAT(remap(shape, SAT(1.-cov*1.15), 1., 0., 1.))*prof;
+  if(dtl && d>0.0 && d<0.35){              // erode the edges with fine worley
+    vec3 dq=vec3(axz.x, p.y-u_time*0.004, axz.y)*0.9 + u_seed3*2.7;
+    vec3 dn=textureLod(u_texDtl,dq,lod).rgb;
+    float df=dot(dn,vec3(.625,.25,.125));
+    df=mix(df,1.-df,SAT(h*4.));            // wispy floors, billowy crowns
+    d=SAT(remap(d, df*0.45, 1., 0., 1.));
+  }
+  return d*u_dens;
+}
+
+/* Mid deck: altocumulus — a thin cellular sheet near 4.5 km. */
+float mapMid(vec3 p, float lod){
+  const float mb=4.1, mt=5.05;
+  float h=(p.y-mb)/(mt-mb);
+  if(h<0.||h>1.) return 0.;
+  float c=fbm2((p.xz+u_ofsMid)*0.045 + u_seed3.zy*3.1);
+  c=SAT(remap(c, 1.04-u_covMid*1.12, 1., 0., 1.));
+  if(c<=0.004) return 0.;
+  vec2 axz=p.xz+u_ofsMid;
+  vec3 q=vec3(axz.x, p.y*2., axz.y)*0.33 + u_seed3.zxy;
+  float cell=textureLod(u_texBase,q,lod).g;
+  float prof=smoothstep(0.,.3,h)*(1.-smoothstep(.55,1.,h));
+  float d=SAT(remap(cell*prof, 1.-c*.92, 1., 0., 1.));
+  return d*u_dens*0.5;
+}
+
+float map(vec3 p, float lod, bool dtl){
+  float d=mapLow(p,lod,dtl);
+  if(u_covMid>0.01) d+=mapMid(p,lod);
+  return d;
+}
+`;
+
+// ---- Sky renderer: raymarched light transport ----
+const SKY_FRAG = `#version 300 es
+${'' /* keep #version on line 1 */}
+` .trim() + `
+` + COMMON + `
+out vec4 o;
+
+float phaseHG(float ct,float g){
+  float g2=g*g;
+  return (1.-g2)/(12.566*pow(1.+g2-2.*g*ct,1.5));
+}
+
+vec3 skyGrad(vec3 rd){
+  float t=SAT(rd.y);
+  vec3 sky=mix(u_hor,u_zen,pow(t,.55));
+  float ct=SAT(dot(rd,u_sunDir));
+  sky+=u_sunCol*.12*pow(ct,6.)*(1.2-t);          // broad forward glow
+  sky+=u_sunCol*.38*pow(ct,48.);                 // tight halo
+  sky=mix(sky,u_hor*1.04,SAT(u_haze*.6*(1.-t)));
+  if(u_night>0.01&&rd.y>0.){                     // stars
+    vec2 sq=floor(rd.xz/max(rd.y+.35,.05)*160.);
+    float st=hash12(sq);
+    sky+=vec3(.9)*smoothstep(.9985,1.,st)*u_night*SAT(rd.y*3.);
+  }
+  return sky;
+}
+
+/* Cirrus: too thin to march — a streaked sheet at 8.6 km,
+   combed along the high-level wind. */
+vec4 cirrus(vec3 ro, vec3 rd){
+  if(rd.y<=0.015||u_covHigh<=0.006) return vec4(0.);
+  float t=(8.6-ro.y)/rd.y;
+  vec3 p=ro+rd*t;
+  vec2 dir=u_hiDir;
+  vec2 uv=vec2(dot(p.xz+u_ofsHigh,dir), dot(p.xz+u_ofsHigh,vec2(-dir.y,dir.x)));
+  float n=fbm2(vec2(uv.x*.02,uv.y*.10)+u_seed3.yz*5.);
+  n=pow(SAT(remap(n, 1.0-u_covHigh*.95, 1., 0., 1.)),1.5);
+  float strands=fbm2(vec2(uv.x*.05,uv.y*.45)+u_seed3.yz*8.5);
+  n*=smoothstep(.35,.8,strands*.6+n*.4);         // stays fibrous at full cover
+  float fade=exp(-max(t-9.,0.)*.008);
+  float ct=dot(rd,u_sunDir);
+  vec3 col=(u_zen*.4+u_hor*.25)+u_sunCol*(.5+9.*phaseHG(ct,.6));
+  return vec4(col, SAT(n*.45*fade));
+}
+
+const float SIGMA=38.;
+const int   NSTEP=72;
+const float LOFS[5]=float[5](.10,.22,.45,.90,1.90);
+const float LSEG[5]=float[5](.10,.12,.23,.45,1.00);
+
+vec4 marchClouds(vec3 ro, vec3 rd, float jitter){
+  float bot=u_baseKm - u_precip*1.3;
+  float top=max(u_baseKm+u_thick, (u_covMid>0.01)?5.05:0.);
+  float t0,t1;
+  if(abs(rd.y)<1e-3){
+    if(ro.y>bot&&ro.y<top){ t0=0.; t1=30.; } else return vec4(0,0,0,1);
+  }else{
+    float ta=(bot-ro.y)/rd.y, tb=(top-ro.y)/rd.y;
+    t0=max(min(ta,tb),0.); t1=min(max(ta,tb),34.);
+    if(t1<=t0) return vec4(0,0,0,1);
+  }
+  t1=min(t1,t0+26.);
+  float dt=(t1-t0)/float(NSTEP);
+  float t=t0+jitter*dt;
+  float ct=dot(rd,u_sunDir);
+  float ph=mix(phaseHG(ct,.72),phaseHG(ct,-.28),.42);
+  float trans=1.; vec3 acc=vec3(0);
+  float fogK=.012+.05*u_haze;
+  // heavy convective decks are gloomy underneath — starve the ambient
+  float gloom=mix(1.,.22,SAT(u_covLow*(.30+.70*u_conv)*1.15+u_precip*.35-.35));
+  for(int i=0;i<NSTEP;i++){
+    vec3 p=ro+rd*t;
+    float lod=log2(1.+t*.30);
+    float d=map(p,lod,true);
+    if(d>0.0015){
+      float lden=0.;
+      for(int j=0;j<5;j++) lden+=map(p+u_sunDir*LOFS[j],lod+1.,false)*LSEG[j];
+      float od=lden*SIGMA;
+      float beer=exp(-od)+.28*exp(-od*.18)+.06*exp(-od*.03);  // cheap multi-scatter
+      float powder=1.-exp(-od*2.);
+      float E=beer*mix(1.,powder,.55*SAT(1.-ct));             // powder darkens backscatter
+      float hf=SAT((p.y-u_baseKm)/max(u_thick,.001));
+      vec3 amb=mix(u_hor,u_zen,.45)*(.25+.75*hf)*.62*mix(gloom,1.,hf*.5);
+      vec3 Li=u_sunCol*E*ph*45. + amb;
+      Li=mix(Li,u_hor,SAT(1.-exp(-t*fogK)));                 // aerial perspective
+      float alpha=exp(-d*SIGMA*dt);
+      acc+=trans*Li*(1.-alpha);
+      trans*=alpha;
+      if(trans<.012) break;
+    }
+    t+=dt;
+  }
+  return vec4(acc,trans);
+}
+
+vec3 aces(vec3 x){
+  return SAT((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14));
+}
+
+void main(){
+  vec2 ndc=(gl_FragCoord.xy/u_res)*2.-1.;
+  vec3 rd=normalize(u_camFwd + ndc.x*u_aspect*u_fovTan*u_camRight + ndc.y*u_fovTan*u_camUp);
+  vec3 ro=u_camPos;
+  float jitter=hash12(gl_FragCoord.xy);
+  vec3 bg;
+  if(rd.y<-0.002){
+    float tg=-ro.y/rd.y;
+    vec2 gp=ro.xz+rd.xz*tg;
+    float gn=fbm2(gp*.4)*.05;
+    vec3 g=vec3(.040,.055,.042)+gn*vec3(.8,1.,.8);
+    float sh=covLowAt(gp);
+    g*=mix(1.,.5,SAT(sh*1.25));                     // cloud shadow
+    g*=SAT(u_sunDir.y*1.6+.28);                     // day/night on land
+    g*=mix(1.,.5,SAT(u_precip*.9));                 // rain darkens the world
+    bg=mix(g,u_hor,SAT(1.-exp(-tg*(.05+.09*u_haze))));
+  }else{
+    bg=skyGrad(rd);
+    vec4 ci=cirrus(ro,rd);
+    bg=mix(bg,ci.rgb,ci.a);
+    float sd=SAT(dot(rd,u_sunDir));
+    bg+=u_sunCol*(pow(sd,2600.)*16.+pow(sd,300.)*.8)*step(-0.03,u_sunDir.y);
+  }
+  vec4 cl=marchClouds(ro,rd,jitter);
+  vec3 col=cl.rgb+cl.a*bg;
+  col=aces(col*u_expo);
+  col=pow(col,vec3(1./2.2));
+  col+=(hash12(gl_FragCoord.xy+.7)-.5)/255.;        // debanding dither
+  o=vec4(col,1.);
+}
+`;
+
+// ---- Synoptic renderer: the same field, sliced into isopleths ----
+const CHART_FRAG = `#version 300 es
+` + COMMON + `
+uniform vec3 u_pal[5];
+uniform float u_levels;
+out vec4 o;
+
+vec3 pal(float t){
+  t=SAT(t)*4.;
+  vec3 c=mix(u_pal[0],u_pal[1],SAT(t));
+  c=mix(c,u_pal[2],SAT(t-1.));
+  c=mix(c,u_pal[3],SAT(t-2.));
+  return mix(c,u_pal[4],SAT(t-3.));
+}
+
+const int NSLICE=12;
+const float CHART_R=24.;
+
+void main(){
+  vec2 ndc=(gl_FragCoord.xy/u_res)*2.-1.;
+  vec3 rd=normalize(u_camFwd + ndc.x*u_aspect*u_fovTan*u_camRight + ndc.y*u_fovTan*u_camUp);
+  vec3 ro=u_camPos;
+  vec3 bgcol=mix(pal(0.),vec3(0.),.72);
+  // plotting table: graticule + advection lattice on the ground plane
+  if(rd.y<-0.02){
+    float tg=-ro.y/rd.y;
+    vec2 gp=ro.xz+rd.xz*tg;
+    float r=length(gp);
+    if(r<CHART_R+1.6){
+      vec2 g1=abs(fract(gp/2.)-.5)*2.;
+      float minor=smoothstep(.10,.03,min(g1.x,g1.y));
+      vec2 g2=abs(fract(gp/10.)-.5)*10.;
+      float major=smoothstep(.12,.04,min(g2.x,g2.y));
+      float ring=smoothstep(.30,.08,abs(r-CHART_R));
+      vec2 ap=gp+u_ofsLow;                       // lattice drifts with the wind
+      float dots=smoothstep(.20,.06,length(fract(ap/1.5)-.5));
+      float inR=step(r,CHART_R);
+      bgcol+=pal(.5)*(minor*.03+major*.06)*inR + pal(.35)*ring*.35 + pal(.8)*dots*.04*inR;
+    }
+  }
+  float trans=1.; vec3 acc=vec3(0);
+  for(int i=NSLICE-1;i>=0;i--){                  // top slice is nearest to the eye
+    float fi=float(i)/float(NSLICE-1);
+    float yy=mix(.3,8.6,pow(fi,1.25));
+    float t=(yy-ro.y)/min(rd.y,-1e-4);
+    float m=(rd.y<-1e-3&&t>0.)?1.:0.;
+    vec3 p=ro+rd*max(t,0.);
+    m*=step(length(p.xz),CHART_R);
+    float d=(m>0.)?map(p,2.5,false):0.;
+    float v=d*u_levels;
+    float f=abs(fract(v-.5)-.5);
+    float lw=.085+t*.001;
+    float line=(1.-smoothstep(lw*.2,lw,f))*smoothstep(.02,.06,d);
+    float fill=smoothstep(.03,.8,d)*.03;
+    float a=SAT(line*.7+fill)*m;
+    acc+=trans*pal(.15+.85*fi)*a;
+    trans*=1.-a*.8;
+    if(trans<.08) break;
+  }
+  vec3 col=acc+trans*bgcol;
+  col=pow(SAT(col),vec3(1./2.2));
+  col+=(hash12(gl_FragCoord.xy+.7)-.5)/255.;
+  o=vec4(col,1.);
+}
+`;
+
+// ---- Noise-field bakers: tiled Perlin-Worley into 3-D textures ----
+const GEN_COMMON = `
+precision highp float;
+in vec2 v_uv;
+uniform float u_z;
+out vec4 o;
+#define SAT(x) clamp(x,0.,1.)
+float remap(float v,float a,float b,float c,float d){ return c+SAT((v-a)/(b-a))*(d-c); }
+vec3 hash33(vec3 p){
+  p=fract(p*vec3(.1031,.1030,.0973));
+  p+=dot(p,p.yxz+33.33);
+  return fract((p.xxy+p.yxx)*p.zyx);
+}
+float pnoise(vec3 x,float per){
+  vec3 i=floor(x), f=fract(x);
+  vec3 u=f*f*f*(f*(f*6.-15.)+10.);
+  float a=dot(hash33(mod(i,per))*2.-1.,               f);
+  float b=dot(hash33(mod(i+vec3(1,0,0),per))*2.-1.,   f-vec3(1,0,0));
+  float c=dot(hash33(mod(i+vec3(0,1,0),per))*2.-1.,   f-vec3(0,1,0));
+  float d=dot(hash33(mod(i+vec3(1,1,0),per))*2.-1.,   f-vec3(1,1,0));
+  float e=dot(hash33(mod(i+vec3(0,0,1),per))*2.-1.,   f-vec3(0,0,1));
+  float g=dot(hash33(mod(i+vec3(1,0,1),per))*2.-1.,   f-vec3(1,0,1));
+  float h=dot(hash33(mod(i+vec3(0,1,1),per))*2.-1.,   f-vec3(0,1,1));
+  float k=dot(hash33(mod(i+vec3(1,1,1),per))*2.-1.,   f-vec3(1,1,1));
+  return mix(mix(mix(a,b,u.x),mix(c,d,u.x),u.y),
+             mix(mix(e,g,u.x),mix(h,k,u.x),u.y),u.z);
+}
+float pfbm(vec3 p,float freq){
+  float a=.5,s=0.,tot=0.;
+  for(int i=0;i<5;i++){ s+=a*pnoise(p*freq,freq); tot+=a; freq*=2.; a*=.5; }
+  return SAT(s/tot*.9+.5);
+}
+float worley(vec3 p,float freq){
+  p*=freq;
+  vec3 i=floor(p), f=fract(p);
+  float dmin=1e9;
+  for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++){
+    vec3 ofs=vec3(float(x),float(y),float(z));
+    vec3 c=hash33(mod(i+ofs,freq))+ofs;
+    float dd=dot(f-c,f-c);
+    dmin=min(dmin,dd);
+  }
+  return 1.-SAT(sqrt(dmin));
+}
+float wfbm(vec3 p,float f){
+  return worley(p,f)*.625+worley(p,f*2.)*.25+worley(p,f*4.)*.125;
+}
+`;
+
+const GEN_BASE_FRAG = `#version 300 es
+` + GEN_COMMON + `
+void main(){
+  vec3 p=vec3(v_uv,u_z);
+  float pf=pfbm(p,4.);
+  float pw=remap(pf, 0., 1., wfbm(p,4.), 1.);   // Perlin-Worley
+  o=vec4(pw, wfbm(p,8.), wfbm(p,16.), wfbm(p,32.));
+}`;
+
+const GEN_DTL_FRAG = `#version 300 es
+` + GEN_COMMON + `
+void main(){
+  vec3 p=vec3(v_uv,u_z);
+  o=vec4(wfbm(p,4.), wfbm(p,8.), wfbm(p,16.), 1.);
+}`;
+
+/* ======================================================
+   WEBGL PLUMBING
+   ====================================================== */
+const stage=document.getElementById('stage');
+const canvas=document.getElementById('c');
+const errBox=document.getElementById('err-msg');
+const gl=canvas.getContext('webgl2',{antialias:false,alpha:false,preserveDrawingBuffer:false});
+
+function fail(msg){ errBox.textContent=msg; errBox.classList.add('show'); throw new Error(msg); }
+if(!gl) fail('This piece needs WebGL 2.0 — try a recent Chrome, Firefox or Safari.');
+
+function compile(type,src){
+  const s=gl.createShader(type);
+  gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){
+    const log=gl.getShaderInfoLog(s);
+    console.error(log,src.split('\n').map((l,i)=>`${i+1}: ${l}`).join('\n'));
+    fail('Shader compile error — see console.');
+  }
+  return s;
+}
+function program(fragSrc){
+  const p=gl.createProgram();
+  gl.attachShader(p,compile(gl.VERTEX_SHADER,VERT_SRC));
+  gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fragSrc));
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) fail('Shader link error: '+gl.getProgramInfoLog(p));
+  const u={};
+  const n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);
+  for(let i=0;i<n;i++){
+    const info=gl.getActiveUniform(p,i);
+    u[info.name.replace(/\[0\]$/,'')]=gl.getUniformLocation(p,info.name);
+  }
+  return {prog:p,u};
+}
+const U={
+  f:(pm,n,x)=>{ if(pm.u[n]!=null) gl.uniform1f(pm.u[n],x); },
+  f2:(pm,n,x,y)=>{ if(pm.u[n]!=null) gl.uniform2f(pm.u[n],x,y); },
+  f3:(pm,n,x,y,z)=>{ if(pm.u[n]!=null) gl.uniform3f(pm.u[n],x,y,z); },
+  f3v:(pm,n,a)=>{ if(pm.u[n]!=null) gl.uniform3fv(pm.u[n],a); },
+  i:(pm,n,x)=>{ if(pm.u[n]!=null) gl.uniform1i(pm.u[n],x); },
+};
+
+// fullscreen quad
+const vao=gl.createVertexArray();
+gl.bindVertexArray(vao);
+const vbo=gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1, 1,-1, -1,1, 1,1]),gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0);
+gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+
+let progSky=null, progChart=null, texBase=null, texDtl=null;
+
+function bake3D(size,fragSrc,mips){
+  const pm=program(fragSrc);
+  const tex=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_3D,tex);
+  const levels=mips?Math.round(Math.log2(size))+1:1;
+  gl.texStorage3D(gl.TEXTURE_3D,levels,gl.RGBA8,size,size,size);
+  const fb=gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
+  gl.viewport(0,0,size,size);
+  gl.useProgram(pm.prog);
+  gl.bindVertexArray(vao);
+  for(let z=0;z<size;z++){
+    gl.framebufferTextureLayer(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,tex,0,z);
+    U.f(pm,'u_z',(z+0.5)/size);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  gl.deleteFramebuffer(fb);
+  gl.bindTexture(gl.TEXTURE_3D,tex);
+  if(mips) gl.generateMipmap(gl.TEXTURE_3D);
+  gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MIN_FILTER,mips?gl.LINEAR_MIPMAP_LINEAR:gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_WRAP_T,gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_WRAP_R,gl.REPEAT);
+  return tex;
+}
+
+/* ======================================================
+   STATE
+   ====================================================== */
+let seed=DEFAULT_SEED;
+let mode='sky';
+let paused=false;
+let simT=0, lastT=0;
+let palIdx=0, qualityIdx=1;
+let seed3=[0,0,0];
+const ofs={ low:[0,0], mid:[0,0], high:[0,0] };
+const camSky={ yaw:0.35, pitch:0.13, fov:62 };
+const camChart={ yaw:0.5, pitch:1.0, dist:21 };
+let lastWx=null;   // last raw weather snapshot, for the station box
+
+function mulberry32(a){
+  return function(){
+    a|=0; a=a+0x6D2B79F5|0;
+    let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return ((t^t>>>14)>>>0)/4294967296;
+  };
+}
+function setSeed(n){
+  seed=((n-1)%99999+99999)%99999+1;
+  const r=mulberry32(seed*2654435761);
+  seed3=[r()*60+10, r()*60+10, r()*60+10];
+  ofs.low=[r()*800,r()*800]; ofs.mid=[r()*800,r()*800]; ofs.high=[r()*800,r()*800];
+  document.getElementById('seed-display').textContent=seed;
+}
+
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const rad=Math.PI/180;
+
+/* ======================================================
+   SUN — position and palette
+   ====================================================== */
+function dayOfYear(){
+  const now=new Date();
+  return Math.floor((now-new Date(now.getFullYear(),0,0))/864e5);
+}
+function solar(hour,latDeg,doy){
+  const decl=-23.44*rad*Math.cos(2*Math.PI*(doy+10)/365);
+  const H=(hour-12)*15*rad, lat=latDeg*rad;
+  const el=Math.asin(Math.sin(lat)*Math.sin(decl)+Math.cos(lat)*Math.cos(decl)*Math.cos(H));
+  const az=Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(lat)-Math.tan(decl)*Math.cos(lat))+Math.PI;
+  return {el:el/rad, az:az/rad};
+}
+// elevation° → light. Between the stops, dawn happens.
+const SKY_STOPS=[
+  [-90,{zen:[.012,.016,.035],hor:[.020,.026,.050],sun:[.10,.12,.18],night:1.0,expo:1.60}],
+  [-18,{zen:[.012,.016,.035],hor:[.020,.026,.050],sun:[.10,.12,.18],night:1.0,expo:1.60}],
+  [ -8,{zen:[.014,.020,.050],hor:[.055,.045,.075],sun:[.30,.20,.18],night:.85,expo:1.55}],
+  [ -3,{zen:[.030,.050,.120],hor:[.360,.160,.100],sun:[.90,.35,.15],night:.40,expo:1.45}],
+  [  1,{zen:[.080,.140,.300],hor:[.900,.460,.220],sun:[1.0,.42,.16],night:.08,expo:1.35}],
+  [  8,{zen:[.150,.300,.600],hor:[.880,.700,.550],sun:[1.0,.70,.40],night:0.0,expo:1.25}],
+  [ 25,{zen:[.210,.420,.800],hor:[.750,.830,.920],sun:[1.0,.93,.80],night:0.0,expo:1.15}],
+  [ 90,{zen:[.230,.470,.880],hor:[.720,.820,.940],sun:[1.0,.97,.90],night:0.0,expo:1.10}],
+];
+function skyColors(elDeg){
+  let a=SKY_STOPS[0],b=SKY_STOPS[SKY_STOPS.length-1];
+  for(let i=0;i<SKY_STOPS.length-1;i++){
+    if(elDeg>=SKY_STOPS[i][0]&&elDeg<=SKY_STOPS[i+1][0]){ a=SKY_STOPS[i]; b=SKY_STOPS[i+1]; break; }
+  }
+  const t=clamp((elDeg-a[0])/((b[0]-a[0])||1),0,1);
+  const mix3=(x,y)=>[lerp(x[0],y[0],t),lerp(x[1],y[1],t),lerp(x[2],y[2],t)];
+  return {
+    zen:mix3(a[1].zen,b[1].zen), hor:mix3(a[1].hor,b[1].hor), sun:mix3(a[1].sun,b[1].sun),
+    night:lerp(a[1].night,b[1].night,t), expo:lerp(a[1].expo,b[1].expo,t),
+  };
+}
+
+/* ======================================================
+   WIND — layered advection with real shear when we have it
+   ====================================================== */
+function fromVec(deg){ const r2=deg*rad; return [Math.sin(r2),Math.cos(r2)]; }
+function layerWinds(){
+  const lowK=P.windKmh, lowD=P.windDeg;
+  const midK=P.windMidKmh!=null?P.windMidKmh:lowK*(1+P.shear*1.4);
+  const midD=P.windMidDeg!=null?P.windMidDeg:lowD+P.shear*22;
+  const hiK =P.windHighKmh!=null?P.windHighKmh:lowK*(1+P.shear*3.2);
+  const hiD =P.windHighDeg!=null?P.windHighDeg:lowD+P.shear*38;
+  return {lowK,lowD,midK,midD,hiK,hiD};
+}
+function advance(dtSky){
+  const w=layerWinds();
+  const push=(o,k,d)=>{ const f=fromVec(d), s=k/3600; o[0]+=f[0]*s*dtSky; o[1]+=f[1]*s*dtSky; };
+  push(ofs.low,w.lowK,w.lowD);
+  push(ofs.mid,w.midK,w.midD);
+  push(ofs.high,w.hiK,w.hiD);
+}
+
+/* ======================================================
+   WEATHER — Open-Meteo, no key, fetched by your browser
+   ====================================================== */
+const WMO={0:'clear',1:'mostly clear',2:'partly cloudy',3:'overcast',45:'fog',48:'rime fog',
+  51:'light drizzle',53:'drizzle',55:'heavy drizzle',56:'icy drizzle',57:'icy drizzle',
+  61:'light rain',63:'rain',65:'heavy rain',66:'freezing rain',67:'freezing rain',
+  71:'light snow',73:'snow',75:'heavy snow',77:'snow grains',
+  80:'light showers',81:'showers',82:'violent showers',85:'snow showers',86:'snow showers',
+  95:'thunderstorm',96:'thunderstorm + hail',99:'thunderstorm + hail'};
+function regime(code){
+  if(code===0)            return {conv:.45,precip:0};
+  if(code<=2)             return {conv:.55,precip:0};
+  if(code===3)            return {conv:.10,precip:0};
+  if(code===45||code===48)return {conv:.05,precip:0,covLowMin:.92,baseCap:.18};
+  if(code>=51&&code<=57)  return {conv:.15,precip:.35};
+  if(code>=61&&code<=67)  return {conv:.30,precip:code>=65?.9:(code>=63?.7:.5)};
+  if(code>=71&&code<=77)  return {conv:.20,precip:.55};
+  if(code>=80&&code<=86)  return {conv:.80,precip:.45+.2*Math.min(code-80,2)};
+  if(code>=95)            return {conv:1.0,precip:.9};
+  return {conv:.5,precip:0};
+}
+const wxBox=document.getElementById('wx-box');
+function esc(s){ return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function updateWxBox(status){
+  if(!lastWx){
+    if(status) wxBox.innerHTML=esc(status);
+    return;
+  }
+  const w=lastWx;
+  const st=LOC.live?'<span class="wx-live">&#9679; live</span>'
+                   :'<span class="wx-stale">&#9679; edited</span>';
+  wxBox.innerHTML=
+    `<span class="wx-place">${esc(LOC.label||'?')}</span>  ${st}\n`+
+    `${w.temp.toFixed(1)}&deg;C &middot; rh ${Math.round(w.rh)}% &middot; ${esc(w.desc)}\n`+
+    `cover ${Math.round(w.cl)}/${Math.round(w.cm)}/${Math.round(w.ch)}% &middot; base ${P.base.toFixed(2)} km\n`+
+    `wind ${Math.round(P.windKmh)} km/h from ${Math.round(P.windDeg)}&deg;`+
+    (P.windHighKmh!=null?` &middot; aloft ${Math.round(P.windHighKmh)}`:'');
+}
+function wxError(msg){
+  wxBox.innerHTML=`<span class="wx-err">${esc(msg)}</span>\nmanual sky — the sliders are yours`;
+}
+async function fetchWeather(lat,lon,label){
+  updateWxBox(); wxBox.innerHTML='contacting station&hellip;';
+  const url='https://api.open-meteo.com/v1/forecast?latitude='+lat.toFixed(4)+'&longitude='+lon.toFixed(4)
+    +'&current=temperature_2m,relative_humidity_2m,dew_point_2m,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,'
+    +'wind_speed_10m,wind_direction_10m,weather_code,precipitation,is_day'
+    +'&hourly=wind_speed_850hPa,wind_direction_850hPa,wind_speed_700hPa,wind_direction_700hPa,'
+    +'wind_speed_250hPa,wind_direction_250hPa&forecast_days=1&timezone=auto';
+  try{
+    const res=await fetch(url);
+    if(!res.ok) throw new Error('station returned '+res.status);
+    const j=await res.json();
+    applyWeather(j,lat,lon,label);
+  }catch(e){
+    console.warn(e);
+    wxError('no reply from open-meteo.com');
+  }
+}
+function applyWeather(j,lat,lon,label){
+  const c=j.current;
+  LOC.lat=lat; LOC.lon=lon; LOC.label=label; LOC.live=true; LOC.fetchedAt=Date.now();
+  P.covLow=clamp(c.cloud_cover_low/100,0,1);
+  P.covMid=clamp(c.cloud_cover_mid/100,0,1);
+  P.covHigh=clamp(c.cloud_cover_high/100,0,1);
+  const spread=Math.max(0,c.temperature_2m-c.dew_point_2m);
+  P.base=clamp(0.125*spread,0.15,3);           // lifting condensation level
+  P.haze=clamp(c.relative_humidity_2m/100*.8,.05,.9);
+  P.windKmh=c.wind_speed_10m; P.windDeg=c.wind_direction_10m;
+  const R=regime(c.weather_code);
+  P.conv=R.conv; P.precip=R.precip;
+  if(R.covLowMin!=null) P.covLow=Math.max(P.covLow,R.covLowMin);
+  if(R.baseCap!=null) P.base=Math.min(P.base,R.baseCap);
+  P.hour=parseInt(c.time.slice(11,13))+parseInt(c.time.slice(14,16))/60;
+  P.windMidKmh=P.windMidDeg=P.windHighKmh=P.windHighDeg=null;
+  try{
+    const idx=parseInt(c.time.slice(11,13));
+    const H=j.hourly;
+    const pick=(arr)=>arr&&arr[idx]!=null?arr[idx]:null;
+    const s850=pick(H.wind_speed_850hPa), d850=pick(H.wind_direction_850hPa);
+    if(s850!=null){ P.windKmh=s850; P.windDeg=d850; }   // steer the deck at cloud level
+    P.windMidKmh=pick(H.wind_speed_700hPa); P.windMidDeg=pick(H.wind_direction_700hPa);
+    P.windHighKmh=pick(H.wind_speed_250hPa); P.windHighDeg=pick(H.wind_direction_250hPa);
+    if(P.windHighKmh!=null) P.shear=clamp((P.windHighKmh-P.windKmh)/80,0,1);
+  }catch(e){/* pressure levels are a luxury */}
+  lastWx={temp:c.temperature_2m,rh:c.relative_humidity_2m,desc:WMO[c.weather_code]||('code '+c.weather_code),
+          cl:c.cloud_cover_low,cm:c.cloud_cover_mid,ch:c.cloud_cover_high};
+  clearPresetActive();
+  syncSliders();
+  updateWxBox();
+}
+async function geocode(q){
+  const res=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)+'&count=1&language=en&format=json');
+  if(!res.ok) throw new Error('geocoder returned '+res.status);
+  const j=await res.json();
+  if(!j.results||!j.results.length) throw new Error('nowhere by that name');
+  const r=j.results[0];
+  return {lat:r.latitude,lon:r.longitude,label:r.name+(r.country_code?', '+r.country_code:'')};
+}
+
+/* ======================================================
+   UI WIRING
+   ====================================================== */
+const $=id=>document.getElementById(id);
+const SLIDERS=[
+  ['covLow','covLow',v=>Math.round(v*100)+'%',true],
+  ['covMid','covMid',v=>Math.round(v*100)+'%',true],
+  ['covHigh','covHigh',v=>Math.round(v*100)+'%',true],
+  ['base','base',v=>v.toFixed(2)+' km',true],
+  ['conv','conv',v=>v.toFixed(2),true],
+  ['haze','haze',v=>v.toFixed(2),true],
+  ['dens','dens',v=>v.toFixed(2),true],
+  ['precip','precip',v=>v.toFixed(2),true],
+  ['windKmh','windKmh',v=>Math.round(v)+' km/h',true],
+  ['windDeg','windDeg',v=>Math.round(v)+'°',true],
+  ['shear','shear',v=>v.toFixed(2),true],
+  ['hour','hour',v=>{const h=Math.floor(v)%24,m=Math.floor((v%1)*60);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');},false],
+  ['tempo','tempo',v=>Math.round(v)+'×',false],
+];
+function sliderFill(el){
+  const mn=parseFloat(el.min),mx=parseFloat(el.max),v=parseFloat(el.value);
+  el.style.setProperty('--fill',((v-mn)/(mx-mn)*100)+'%');
+}
+function markManual(){
+  if(LOC.live){ LOC.live=false; updateWxBox(); }
+  P.windMidKmh=P.windMidDeg=P.windHighKmh=P.windHighDeg=null;
+  clearPresetActive();
+}
+for(const [id,key,fmt,weatherBound] of SLIDERS){
+  const el=$('sl-'+id), val=$('val-'+id);
+  const show=()=>{ val.innerHTML=fmt(parseFloat(el.value)); sliderFill(el); };
+  el.addEventListener('input',()=>{ P[key]=parseFloat(el.value); if(weatherBound)markManual(); show(); });
+  show();
+}
+function syncSliders(){
+  for(const [id,key,fmt] of SLIDERS){
+    const el=$('sl-'+id);
+    el.value=P[key];
+    $('val-'+id).innerHTML=fmt(parseFloat(el.value));
+    sliderFill(el);
+  }
+}
+
+// sky presets
+let activePreset=null;
+function clearPresetActive(){
+  activePreset=null;
+  document.querySelectorAll('#preset-list .preset-btn').forEach(b=>b.classList.remove('active'));
+}
+const presetList=$('preset-list');
+PRESETS.forEach((pre,i)=>{
+  const b=document.createElement('button');
+  b.className='preset-btn'; b.textContent=pre.name;
+  b.addEventListener('click',()=>{
+    Object.assign(P,pre.p);
+    P.windMidKmh=P.windMidDeg=P.windHighKmh=P.windHighDeg=null;
+    if(LOC.live){ LOC.live=false; updateWxBox(); }
+    clearPresetActive();
+    activePreset=i; b.classList.add('active');
+    syncSliders();
+  });
+  presetList.appendChild(b);
+});
+
+// palettes (synoptic mode)
+const palList=$('palette-list');
+function hex2rgb(h){ return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255); }
+PALETTES.forEach((p,i)=>{
+  const s=document.createElement('div');
+  s.className='swatch'+(i===0?' active':'');
+  s.title=p.name;
+  s.style.background='linear-gradient(135deg,'+p.c.join(',')+')';
+  s.addEventListener('click',()=>{
+    palIdx=i;
+    palList.querySelectorAll('.swatch').forEach(x=>x.classList.remove('active'));
+    s.classList.add('active');
+  });
+  palList.appendChild(s);
+});
+
+// quality chips
+const qList=$('quality-list');
+QUALITIES.forEach((q,i)=>{
+  const b=document.createElement('button');
+  b.className='preset-btn'+(i===qualityIdx?' active':'');
+  b.textContent=q.name;
+  b.addEventListener('click',()=>{
+    qualityIdx=i;
+    qList.querySelectorAll('.preset-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    resize();
+  });
+  qList.appendChild(b);
+});
+
+// mode
+function setMode(m){
+  mode=m;
+  $('mode-sky').classList.toggle('active',m==='sky');
+  $('mode-chart').classList.toggle('active',m==='chart');
+  $('palette-section').style.display=m==='chart'?'':'none';
+}
+$('mode-sky').addEventListener('click',()=>setMode('sky'));
+$('mode-chart').addEventListener('click',()=>setMode('chart'));
+
+// location
+$('btn-loc-go').addEventListener('click',doSearch);
+$('loc-input').addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(); });
+async function doSearch(){
+  const q=$('loc-input').value.trim();
+  if(!q) return;
+  wxBox.innerHTML='finding '+esc(q)+'&hellip;';
+  try{
+    const g=await geocode(q);
+    await fetchWeather(g.lat,g.lon,g.label);
+  }catch(e){ wxError(String(e.message||e)); }
+}
+$('btn-geoloc').addEventListener('click',()=>{
+  if(!navigator.geolocation){ wxError('no geolocation in this browser'); return; }
+  wxBox.innerHTML='asking your browser where the sky is&hellip;';
+  navigator.geolocation.getCurrentPosition(
+    pos=>fetchWeather(pos.coords.latitude,pos.coords.longitude,
+      pos.coords.latitude.toFixed(2)+'°, '+pos.coords.longitude.toFixed(2)+'°'),
+    ()=>wxError('location denied — search instead'));
+});
+$('btn-refresh').addEventListener('click',()=>{
+  if(LOC.label) fetchWeather(LOC.lat,LOC.lon,LOC.label);
+  else wxError('no station yet — search or locate first');
+});
+
+// seed
+setSeed(DEFAULT_SEED);
+$('btn-prev').addEventListener('click',()=>setSeed(seed-1));
+$('btn-next').addEventListener('click',()=>setSeed(seed+1));
+$('btn-rand').addEventListener('click',()=>setSeed(1+Math.floor(Math.random()*99999)));
+$('btn-jump').addEventListener('click',()=>{
+  const v=parseInt($('seed-input').value,10);
+  if(!isNaN(v)) setSeed(v);
+});
+$('seed-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ const v=parseInt(e.target.value,10); if(!isNaN(v)) setSeed(v); }
+});
+
+// actions
+$('btn-playpause').addEventListener('click',()=>{
+  paused=!paused;
+  $('btn-playpause').textContent=paused?'Resume':'Pause';
+});
+$('btn-resetview').addEventListener('click',()=>{
+  camSky.yaw=0.35; camSky.pitch=0.13; camSky.fov=62;
+  camChart.yaw=0.5; camChart.pitch=1.0; camChart.dist=21;
+});
+$('btn-download').addEventListener('click',()=>{
+  draw();
+  canvas.toBlob(b=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(b);
+    a.download='nubilous-seed'+seed+'-'+mode+'.png';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  });
+});
+window.addEventListener('keydown',e=>{
+  if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  if(e.key==='ArrowLeft') setSeed(seed-1);
+  else if(e.key==='ArrowRight') setSeed(seed+1);
+  else if(e.key===' '){ e.preventDefault(); $('btn-playpause').click(); }
+});
+
+// camera drag / zoom
+let dragging=false,lastX=0,lastY=0;
+stage.addEventListener('pointerdown',e=>{
+  dragging=true; lastX=e.clientX; lastY=e.clientY;
+  stage.classList.add('dragging');
+  stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',e=>{
+  if(!dragging) return;
+  const dx=e.clientX-lastX, dy=e.clientY-lastY;
+  lastX=e.clientX; lastY=e.clientY;
+  if(mode==='sky'){
+    camSky.yaw+=dx*0.0028*(camSky.fov/62);
+    camSky.pitch=clamp(camSky.pitch+dy*0.0028*(camSky.fov/62),-0.12,1.45);
+  }else{
+    camChart.yaw+=dx*0.005;
+    camChart.pitch=clamp(camChart.pitch+dy*0.004,0.72,1.40);
+  }
+});
+const endDrag=()=>{ dragging=false; stage.classList.remove('dragging'); };
+stage.addEventListener('pointerup',endDrag);
+stage.addEventListener('pointercancel',endDrag);
+stage.addEventListener('wheel',e=>{
+  e.preventDefault();
+  if(mode==='sky') camSky.fov=clamp(camSky.fov*Math.exp(e.deltaY*0.001),24,95);
+  else camChart.dist=clamp(camChart.dist*Math.exp(e.deltaY*0.001),14,42);
+},{passive:false});
+
+/* ======================================================
+   RENDER LOOP
+   ====================================================== */
+function resize(){
+  const r=stage.getBoundingClientRect();
+  const dpr=Math.min(window.devicePixelRatio||1,1.75);
+  const s=QUALITIES[qualityIdx].scale*dpr;
+  canvas.width=Math.max(2,Math.round(r.width*s));
+  canvas.height=Math.max(2,Math.round(r.height*s));
+}
+new ResizeObserver(resize).observe(stage);
+
+function camera(){
+  if(mode==='sky'){
+    const cy=Math.cos(camSky.yaw), sy=Math.sin(camSky.yaw);
+    const cp=Math.cos(camSky.pitch), sp=Math.sin(camSky.pitch);
+    const fwd=[sy*cp,sp,cy*cp];
+    const right=[cy,0,-sy];
+    const up=[fwd[1]*right[2]-fwd[2]*right[1], fwd[2]*right[0]-fwd[0]*right[2], fwd[0]*right[1]-fwd[1]*right[0]];
+    return {pos:[0,0.2,0],fwd,right,up,fovTan:Math.tan(camSky.fov*rad/2)};
+  }
+  const tY=1.5;
+  const cp=Math.cos(camChart.pitch), sp=Math.sin(camChart.pitch);
+  const pos=[Math.sin(camChart.yaw)*cp*camChart.dist, tY+sp*camChart.dist, Math.cos(camChart.yaw)*cp*camChart.dist];
+  let fwd=[-pos[0],tY-pos[1],-pos[2]];
+  const fl=Math.hypot(...fwd); fwd=fwd.map(v=>v/fl);
+  let right=[fwd[2],0,-fwd[0]];
+  const rl=Math.hypot(...right)||1; right=right.map(v=>v/rl);
+  const up=[fwd[1]*right[2]-fwd[2]*right[1], fwd[2]*right[0]-fwd[0]*right[2], fwd[0]*right[1]-fwd[1]*right[0]];
+  return {pos,fwd,right,up,fovTan:Math.tan(50*rad/2)};
+}
+
+function draw(){
+  const pm=mode==='sky'?progSky:progChart;
+  if(!pm) return;
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  gl.viewport(0,0,canvas.width,canvas.height);
+  gl.useProgram(pm.prog);
+  gl.bindVertexArray(vao);
+
+  const cam=camera();
+  const sun=solar(P.hour,LOC.lat,dayOfYear());
+  const col=skyColors(sun.el);
+  const elR=sun.el*rad, azR=sun.az*rad;
+  const sunDir=[Math.sin(azR)*Math.cos(elR),Math.sin(elR),Math.cos(azR)*Math.cos(elR)];
+  const w=layerWinds();
+  const hiF=fromVec(w.hiD);
+  const toLow=fromVec(w.lowD).map(v=>-v);
+  const thick=lerp(0.45,6.8,Math.pow(P.conv,1.35));
+
+  U.f2(pm,'u_res',canvas.width,canvas.height);
+  U.f(pm,'u_time',simT);
+  U.f3(pm,'u_camPos',...cam.pos);
+  U.f3(pm,'u_camFwd',...cam.fwd);
+  U.f3(pm,'u_camRight',...cam.right);
+  U.f3(pm,'u_camUp',...cam.up);
+  U.f(pm,'u_fovTan',cam.fovTan);
+  U.f(pm,'u_aspect',canvas.width/canvas.height);
+  U.f3(pm,'u_sunDir',...sunDir);
+  U.f3(pm,'u_sunCol',...col.sun);
+  U.f3(pm,'u_zen',...col.zen);
+  U.f3(pm,'u_hor',...col.hor);
+  U.f(pm,'u_night',col.night);
+  U.f(pm,'u_expo',col.expo);
+  U.f(pm,'u_covLow',P.covLow);
+  U.f(pm,'u_covMid',P.covMid);
+  U.f(pm,'u_covHigh',P.covHigh);
+  U.f(pm,'u_baseKm',P.base);
+  U.f(pm,'u_thick',thick);
+  U.f(pm,'u_conv',P.conv);
+  U.f(pm,'u_haze',P.haze);
+  U.f(pm,'u_dens',P.dens);
+  U.f(pm,'u_precip',P.precip);
+  U.f2(pm,'u_ofsLow',...ofs.low);
+  U.f2(pm,'u_ofsMid',...ofs.mid);
+  U.f2(pm,'u_ofsHigh',...ofs.high);
+  U.f2(pm,'u_shearV',toLow[0]*P.shear*1.5,toLow[1]*P.shear*1.5);
+  U.f2(pm,'u_hiDir',...hiF);
+  U.f3(pm,'u_seed3',...seed3);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_3D,texBase); U.i(pm,'u_texBase',0);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_3D,texDtl); U.i(pm,'u_texDtl',1);
+  if(mode==='chart'){
+    const flat=[];
+    PALETTES[palIdx].c.forEach(h=>flat.push(...hex2rgb(h)));
+    U.f3v(pm,'u_pal',flat);
+    U.f(pm,'u_levels',4);
+  }
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+}
+
+let infoT=0;
+function updateInfo(){
+  const sun=solar(P.hour,LOC.lat,dayOfYear());
+  const w=layerWinds();
+  $('info-sun').textContent='sun '+sun.el.toFixed(1)+'°';
+  $('info-wind').textContent='wind '+Math.round(w.lowK)+' km/h @ '+Math.round(w.lowD)+'°';
+  $('info-cov').textContent='cover '+Math.round(P.covLow*100)+'/'+Math.round(P.covMid*100)+'/'+Math.round(P.covHigh*100)+'%';
+}
+
+function frame(tNow){
+  requestAnimationFrame(frame);
+  const dtR=Math.min((tNow-lastT)/1000,0.1)||0;
+  lastT=tNow;
+  if(!paused){
+    const dtSky=dtR*P.tempo;
+    simT+=dtSky;
+    advance(dtSky);
+    P.hour=(P.hour+dtSky/3600)%24;
+  }
+  if(LOC.live&&Date.now()-LOC.fetchedAt>15*60*1000){
+    LOC.fetchedAt=Date.now();
+    fetchWeather(LOC.lat,LOC.lon,LOC.label);
+  }
+  if(tNow-infoT>500){
+    infoT=tNow;
+    updateInfo();
+    const el=$('sl-hour');
+    if(document.activeElement!==el){
+      el.value=P.hour;
+      $('val-hour').innerHTML=SLIDERS.find(s=>s[0]==='hour')[2](P.hour);
+      sliderFill(el);
+    }
+  }
+  draw();
+}
+
+/* ======================================================
+   INIT — bake the noise fields, then let the sky happen
+   ====================================================== */
+const loadingPill=$('loading-pill');
+loadingPill.classList.add('show');
+resize();
+setTimeout(()=>{
+  try{
+    progSky=program(SKY_FRAG);
+    progChart=program(CHART_FRAG);
+    texBase=bake3D(128,GEN_BASE_FRAG,true);
+    texDtl=bake3D(32,GEN_DTL_FRAG,true);
+  }catch(e){ console.error(e); return; }
+  loadingPill.classList.remove('show');
+  updateInfo();
+  requestAnimationFrame(t=>{ lastT=t; requestAnimationFrame(frame); });
+},30);
+</script>
+</body>
+</html>
