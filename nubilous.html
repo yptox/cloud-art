@@ -523,11 +523,15 @@ uniform float u_fovTan, u_aspect;
 uniform vec3  u_sunDir, u_sunCol, u_zen, u_hor;
 uniform float u_night, u_expo;
 uniform float u_covLow, u_covMid, u_covHigh;
-uniform float u_baseKm, u_thick, u_conv, u_haze, u_dens, u_precip;
+uniform float u_baseKm, u_thick, u_thickAmb, u_conv, u_haze, u_dens, u_precip;
 uniform vec2  u_ofsLow, u_ofsMid, u_ofsHigh;   // accumulated advection (km)
 uniform vec2  u_shearV, u_hiDir;
 uniform vec3  u_seed3;
 uniform sampler3D u_texBase, u_texDtl;
+uniform sampler2D u_cellTex;    // convective cells, rasterized on the CPU each frame
+uniform vec2  u_cellCtr;        // world center of the cell texture (60 km span)
+uniform float u_curlAmt;        // domain-swirl amplitude (km)
+uniform float u_cellRain;       // strongest cell rain right now
 
 #define SAT(x) clamp(x,0.,1.)
 float remap(float v,float a,float b,float c,float d){ return c+SAT((v-a)/(b-a))*(d-c); }
@@ -543,11 +547,20 @@ float fbm2(vec2 p){
   return s*1.03;
 }
 
-/* Coverage: where the humid air is. A 2-D weather field advected by wind. */
+vec3 cellAt(vec2 xz){ return texture(u_cellTex,(xz-u_cellCtr)/60.+.5).rgb; }
+
+/* Coverage: where the humid air is. A 2-D weather field advected by wind,
+   deformed by a slow swirl (masses rotate and shear apart as they drift
+   through it), and seeded by living convective cells. */
 float covLowAt(vec2 xz){
-  float c=fbm2((xz+u_ofsLow)*0.07 + u_seed3.xy);
+  vec2 sx=xz;
+  float sw1=vn2(sx*.055+u_seed3.xy*7.+vec2(0.,u_time*.0008));
+  float sw2=vn2(sx*.055+u_seed3.yx*9.+vec2(u_time*.0008,0.));
+  sx+=vec2(sw1-.5,sw2-.5)*u_curlAmt;
+  float c=fbm2((sx+u_ofsLow)*0.07 + u_seed3.xy);
   c=SAT(remap(c, 1.02-u_covLow*1.12, 1., 0., 1.));
-  return pow(c, mix(.55,1.6,u_conv));      // stratiform sheets vs scattered towers
+  c=pow(c, mix(.55,1.6,u_conv));           // stratiform sheets vs scattered towers
+  return SAT(c+cellAt(xz).r*.9);           // cells make their own weather
 }
 
 /* Low deck: cumulus / stratus / storm, all one recipe.
@@ -558,16 +571,21 @@ float mapLow(vec3 p, float lod, bool dtl){
   vec2 sxz=p.xz - u_shearV*SAT(h);         // wind shear leans the towers
   float cov=covLowAt(sxz);
   if(h>=0.0 && cov<=0.004) return 0.;
+  vec3 cellv=cellAt(sxz);
   if(h<0.0){                               // ---- virga / rain shafts ----
-    float rainExt=u_precip*1.3;            // how far the rain reaches down (km)
+    float rainAmt=max(u_precip,cellv.g);   // frontal rain or a raining cell
+    float rainExt=rainAmt*1.3;             // how far the rain reaches down (km)
     if(rainExt<=0.01) return 0.;
     float rf=1.+h*u_thick/rainExt;         // 1 at base, 0 at shaft tip
     if(rf<=0.) return 0.;
     float streak=vn2(sxz*2.2+u_ofsLow*3.);
-    return cov*u_precip*0.035*rf*smoothstep(.5,.85,streak)*u_dens;
+    return cov*rainAmt*0.035*rf*smoothstep(.5,.85,streak)*u_dens;
   }
-  // local top height: high coverage builds tall; low convection flattens all
+  // local top height: high coverage builds tall; low convection flattens all.
+  // Ambient cloud tops out at the ambient thickness; a living cell towers
+  // above it, up to the full (cell-raised) slab depth.
   float tHat=mix(1.0, mix(.30,1.,SAT(cov*1.35)), u_conv);
+  tHat=SAT(tHat*u_thickAmb/u_thick + cellv.r*.8);
   float botSoft=mix(.28,.06,u_conv);       // stratus fades in, cumulus has a hard floor
   float topSoft=mix(.72,.52,u_conv);
   float prof=smoothstep(0.,botSoft,h)*(1.-smoothstep(tHat*topSoft,tHat,h));
@@ -662,7 +680,7 @@ const float LOFS[5]=float[5](.10,.22,.45,.90,1.90);
 const float LSEG[5]=float[5](.10,.12,.23,.45,1.00);
 
 vec4 marchClouds(vec3 ro, vec3 rd, float jitter){
-  float bot=u_baseKm - u_precip*1.3;
+  float bot=u_baseKm - max(u_precip,u_cellRain)*1.3;
   float top=max(u_baseKm+u_thick, (u_covMid>0.01)?5.05:0.);
   float t0,t1;
   if(abs(rd.y)<1e-3){
@@ -780,6 +798,8 @@ void main(){
       float dots=smoothstep(.20,.06,length(fract(ap/1.5)-.5));
       float inR=step(r,CHART_R);
       bgcol+=pal(.5)*(minor*.03+major*.06)*inR + pal(.35)*ring*.35 + pal(.8)*dots*.04*inR;
+      vec3 cc=cellAt(gp);                        // the machinery, plotted:
+      bgcol+=(pal(.9)*cc.b*.55+pal(.55)*cc.g*.3)*inR;  // gust fronts + rain cores
     }
   }
   float trans=1.; vec3 acc=vec3(0);
@@ -982,7 +1002,7 @@ let paused=false;
 let simT=0, lastT=0, dirT=0;
 let palIdx=0, qualityIdx=1;
 let seed3=[0,0,0];
-let Director=null, Cine=null;                   // assigned below; setSeed guards on them
+let Director=null, Cine=null, Cells=null;       // assigned below; setSeed guards on them
 let debugOpen=false;
 const ofs={ low:[0,0], mid:[0,0], high:[0,0] };
 const camSky={ pos:[0,0.25,0], yaw:0.35, pitch:0.13, fov:62 };
@@ -1006,6 +1026,7 @@ function setSeed(n){
   document.getElementById('seed-display').textContent=seed;
   if(Director) Director.reseed(seed);
   if(Cine) Cine.reseed(seed);
+  if(Cells) Cells.reseed(seed);
 }
 
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
@@ -1714,16 +1735,120 @@ Cine={
     camSky.pos=c.pos.slice(); camSky.yaw=c.yaw; camSky.pitch=c.pitch; camSky.fov=c.fov;
   }
 };
+/* ======================================================
+   CONVECTIVE LIFE — cells are entities, not noise.
+   Each cell is a turret with a life cycle: it rises over
+   ~10 sky-minutes, matures, rains out, collapses. A raining
+   cell drops a cold pool whose expanding gust front lifts
+   new cells at its rim — three rules, and squall lines
+   organize themselves. Cells ride the low-level wind and
+   are rasterized each frame into a small texture that the
+   density field (and so the shadows, the probe, the chart)
+   reads directly.
+   ====================================================== */
+const CELL_TEX=64, CELL_SPAN=60;   // texture cells live in, km
+Cells={
+  list:[], pools:[], rng:mulberry32(1),
+  buf:new Uint8Array(CELL_TEX*CELL_TEX*4),
+  ctr:[0,0], rainMax:0, maxStr:0,
+  reseed(s){ this.rng=mulberry32((s*104729+3)>>>0); this.list=[]; this.pools=[]; },
+  update(dtSky){
+    const w=layerWinds(), f=fromVec(w.lowD), spd=w.lowK/3600;   // km per sky-second
+    const r=this.rng;
+    for(const c of this.list){ c.x-=f[0]*spd*dtSky*.85; c.z-=f[1]*spd*dtSky*.85; c.age+=dtSky; }
+    for(const p of this.pools){ p.x-=f[0]*spd*dtSky*.5; p.z-=f[1]*spd*dtSky*.5; p.age+=dtSky; }
+    const dl=Math.max(0,Math.sin((P.hour-6.5)/13*Math.PI));
+    for(const c of this.list){
+      const grow=600+400*c.r1;                  // sky-seconds to mature
+      if(c.age<grow){ c.str=c.age/grow; }
+      else if(!c.rain){
+        c.str=Math.min(1,c.str+dtSky/grow*.25);
+        if(P.conv>.45&&c.str>.85&&c.r2<P.conv){  // mature + unstable air → it rains
+          c.rain=true; c.rainT=c.age;
+          this.pools.push({x:c.x,z:c.z,age:0,I:c.str});
+        }else if(c.age>grow*2.2){ c.str-=dtSky/600; }  // never rained: quiet decay
+      }
+      if(c.rain) c.str=Math.max(0,1-(c.age-c.rainT)/500);   // rained out: collapse
+    }
+    this.list=this.list.filter(c=>c.str>.02&&c.age<3600&&Math.hypot(c.x,c.z)<45);
+    this.pools=this.pools.filter(p=>p.age<900);
+    const capacity=18;
+    const baseRate=P.conv*(.15+.85*dl)*.012;    // thermals need daytime heating
+    if(this.list.length<capacity&&r()<baseRate*dtSky){
+      const a=r()*6.283, d=5+r()*25;
+      this.spawn(Math.sin(a)*d,Math.cos(a)*d);
+    }
+    this.rainMax=0;
+    for(const p of this.pools){                 // the gust front lifts daughters
+      const ring=p.age*.012;                    // ~12 m/s expansion
+      if(ring>1.2&&ring<9&&this.list.length<capacity&&r()<P.conv*.04*dtSky){
+        const a=r()*6.283;
+        this.spawn(p.x+Math.sin(a)*ring,p.z+Math.cos(a)*ring);
+      }
+    }
+    this.maxStr=0;
+    for(const c of this.list){
+      this.rainMax=Math.max(this.rainMax,this.rainVal(c));
+      this.maxStr=Math.max(this.maxStr,c.str);
+    }
+  },
+  spawn(x,z){ const r=this.rng;
+    this.list.push({x,z,age:0,str:0,rain:false,rainT:0,rad:1.6+r()*2.4,r1:r(),r2:r()}); },
+  rainVal(c){ return c.rain?Math.min(1,(c.age-c.rainT)/120)*Math.max(c.str,.3):0; },
+  rasterize(){
+    this.ctr=[camSky.pos[0],camSky.pos[2]];
+    const S=CELL_TEX,B=this.buf; B.fill(0);
+    const px=(v,ci)=>((v-this.ctr[ci])/CELL_SPAN+.5)*S;
+    const put=(gx,gz,pr,ch,val)=>{
+      const x0=Math.max(0,Math.floor(gx-pr*2)),x1=Math.min(S-1,Math.ceil(gx+pr*2));
+      const z0=Math.max(0,Math.floor(gz-pr*2)),z1=Math.min(S-1,Math.ceil(gz+pr*2));
+      for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++){
+        const dx=x+.5-gx,dz=z+.5-gz;
+        const wv=Math.exp(-(dx*dx+dz*dz)/(pr*pr*.6))*val*255;
+        const i=(z*S+x)*4+ch;
+        B[i]=Math.min(255,B[i]+wv);
+      }
+    };
+    for(const c of this.list){
+      const gx=px(c.x,0),gz=px(c.z,1);
+      const pr=Math.max(1.6,c.rad/CELL_SPAN*S);
+      put(gx,gz,pr,0,c.str);
+      const rv=this.rainVal(c);
+      if(rv>0) put(gx,gz,pr*.8,1,rv);
+    }
+    for(const p of this.pools){                 // gust-front ring, for the chart
+      const rr=p.age*.012/CELL_SPAN*S, gx=px(p.x,0),gz=px(p.z,1);
+      const amp=(1-p.age/900)*p.I;
+      if(rr<1) continue;
+      const steps=Math.max(12,Math.floor(rr*8));
+      for(let k=0;k<steps;k++){
+        const a=k/steps*6.283;
+        const x=Math.round(gx+Math.sin(a)*rr),z=Math.round(gz+Math.cos(a)*rr);
+        if(x<0||z<0||x>=S||z>=S) continue;
+        const i=(z*S+x)*4+2;
+        B[i]=Math.min(255,B[i]+amp*200);
+      }
+    }
+  },
+};
+
 Director.reseed(seed);
 Cine.reseed(seed);
+Cells.reseed(seed);
 
 // test/inspection hook (not part of the public face)
 window.__nub={
   get P(){return P;}, get dirT(){return dirT;}, set dirT(v){dirT=v;},
   get Director(){return Director;}, get Cine(){return Cine;}, get mode(){return mode;},
-  ff(toT,step){ // fast-forward the director to time toT
+  get Cells(){return Cells;},
+  ff(toT,step){ // fast-forward the director (and cells) to time toT
     step=step||4;
-    while(dirT<toT){ dirT+=step; Director.update(dirT,step); P.hour=(P.hour+step*P.tempo/3600)%24; }
+    while(dirT<toT){
+      dirT+=step;
+      Director.update(dirT,step);
+      P.hour=(P.hour+step*P.tempo/3600)%24;
+      if(Cells) Cells.update(step*P.tempo);
+    }
   },
 };
 
@@ -1767,8 +1892,10 @@ function sceneState(){
   const w=layerWinds();
   const hiF=fromVec(w.hiD);
   const toLow=fromVec(w.lowD).map(v=>-v);
-  const thick=lerp(0.45,6.8,Math.pow(P.conv,1.35));
-  return {sun,col,sunDir,w,hiF,toLow,thick};
+  const thickAmb=lerp(0.45,6.8,Math.pow(P.conv,1.35));
+  const cellTop=Cells?Cells.maxStr*5.2:0;      // strong cells raise the roof
+  const thick=Math.min(Math.max(thickAmb,cellTop),7.2);
+  return {sun,col,sunDir,w,hiF,toLow,thick,thickAmb};
 }
 function atmoUniforms(pm,S){
   U.f(pm,'u_time',simT);
@@ -1783,6 +1910,7 @@ function atmoUniforms(pm,S){
   U.f(pm,'u_covHigh',P.covHigh);
   U.f(pm,'u_baseKm',P.base);
   U.f(pm,'u_thick',S.thick);
+  U.f(pm,'u_thickAmb',S.thickAmb);
   U.f(pm,'u_conv',P.conv);
   U.f(pm,'u_haze',P.haze);
   U.f(pm,'u_dens',P.dens);
@@ -1793,13 +1921,23 @@ function atmoUniforms(pm,S){
   U.f2(pm,'u_shearV',S.toLow[0]*P.shear*1.5,S.toLow[1]*P.shear*1.5);
   U.f2(pm,'u_hiDir',...S.hiF);
   U.f3(pm,'u_seed3',...seed3);
+  U.f2(pm,'u_cellCtr',...Cells.ctr);
+  U.f(pm,'u_curlAmt',1.0+P.shear*2.2);
+  U.f(pm,'u_cellRain',Cells.rainMax);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_3D,texBase); U.i(pm,'u_texBase',0);
   gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_3D,texDtl); U.i(pm,'u_texDtl',1);
+  gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D,texCell); U.i(pm,'u_cellTex',2);
 }
 function draw(){
   const pm=mode==='sky'?progSky:progChart;
   if(!pm) return;
   const S=sceneState();
+  if(texCell){
+    Cells.rasterize();
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D,texCell);
+    gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,CELL_TEX,CELL_TEX,gl.RGBA,gl.UNSIGNED_BYTE,Cells.buf);
+  }
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);
   gl.viewport(0,0,canvas.width,canvas.height);
   gl.useProgram(pm.prog);
@@ -1823,7 +1961,7 @@ function draw(){
 }
 
 // GPU probe readback — the cinematographer's eyes
-let progProbe=null, probeFB=null, probeTex=null;
+let progProbe=null, probeFB=null, probeTex=null, texCell=null;
 const probeBuf=new Uint8Array(PROBE_SIZE*PROBE_SIZE*4);
 function probeField(cx,cz){
   const empty={n:0,cov:[],pts:[],maxD:0,maxDPt:[cx,cz],maxCov:0};
@@ -1871,6 +2009,7 @@ function frame(tNow){
     simT+=dtSky;
     advance(dtSky);
     P.hour=(P.hour+dtSky/3600)%24;
+    if(Cells) Cells.update(dtSky);
     if(!debugOpen){
       dirT+=dtR;
       if(Director) Director.update(dirT,dtR);
@@ -1910,6 +2049,13 @@ setTimeout(()=>{
     texBase=bake3D(128,GEN_BASE_FRAG,true);
     texDtl=bake3D(32,GEN_DTL_FRAG,true);
     progProbe=program(PROBE_FRAG);
+    texCell=gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D,texCell);
+    gl.texStorage2D(gl.TEXTURE_2D,1,gl.RGBA8,CELL_TEX,CELL_TEX);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
     probeTex=gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D,probeTex);
     gl.texStorage2D(gl.TEXTURE_2D,1,gl.RGBA8,PROBE_SIZE,PROBE_SIZE);
