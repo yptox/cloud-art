@@ -294,6 +294,19 @@
   .telemetry.show{display:block}
   .telemetry em{font-style:normal;color:var(--muted);padding:0 6px}
   .telemetry .tx-place{color:var(--cyan)}
+  .stage canvas{transition:opacity .3s}
+  #tax-layer{position:absolute;inset:0;z-index:3;pointer-events:none}
+  .tax-label{
+    position:absolute;transform:translate(-50%,-130%);
+    font-family:var(--mono);font-size:16px;letter-spacing:.8px;font-style:italic;
+    color:var(--ink);background:rgba(4,10,4,.55);border:1px solid var(--line);
+    padding:1px 10px;white-space:nowrap;
+    text-shadow:0 0 5px rgba(0,255,0,.4);
+  }
+  .tax-label::after{
+    content:"";position:absolute;left:50%;top:100%;width:1px;height:16px;
+    background:linear-gradient(rgba(0,255,0,.5),rgba(0,255,0,0));
+  }
 </style>
 </head>
 <body>
@@ -322,6 +335,7 @@
       <button class="mode-btn active" id="mode-sky">Sky</button>
       <button class="mode-btn" id="mode-chart">Synoptic</button>
     </div>
+    <div class="presets" id="reading-list"></div>
     <div class="presets" id="quality-list"></div>
   </div>
 
@@ -451,6 +465,7 @@ summon real weather</div>
       <span id="info-cov">cover &mdash;</span>
     </div>
     <div class="telemetry" id="telemetry"></div>
+    <div id="tax-layer"></div>
   </div>
 </main>
 </div>
@@ -629,12 +644,10 @@ float map(vec3 p, float lod, bool dtl){
 }
 `;
 
-// ---- Sky renderer: raymarched light transport ----
-const SKY_FRAG = `#version 300 es
-${'' /* keep #version on line 1 */}
-` .trim() + `
-` + COMMON + `
-out vec4 o;
+// ---- Sky renderer body: raymarched light transport.
+//      Shared by the Sky reading and its re-inkings (Engraving, Terminal). ----
+const SKY_BODY = `
+uniform vec2 u_toLow;
 
 float phaseHG(float ct,float g){
   float g2=g*g;
@@ -728,11 +741,11 @@ vec3 aces(vec3 x){
   return SAT((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14));
 }
 
-void main(){
-  vec2 ndc=(gl_FragCoord.xy/u_res)*2.-1.;
+vec3 renderSky(vec2 fc){
+  vec2 ndc=(fc/u_res)*2.-1.;
   vec3 rd=normalize(u_camFwd + ndc.x*u_aspect*u_fovTan*u_camRight + ndc.y*u_fovTan*u_camUp);
   vec3 ro=u_camPos;
-  float jitter=hash12(gl_FragCoord.xy);
+  float jitter=hash12(fc);
   vec3 bg;
   if(rd.y<-0.002){
     float tg=-ro.y/rd.y;
@@ -755,18 +768,70 @@ void main(){
   vec3 col=cl.rgb+cl.a*bg;
   col=aces(col*u_expo);
   col=pow(col,vec3(1./2.2));
-  col+=(hash12(gl_FragCoord.xy+.7)-.5)/255.;        // debanding dither
-  o=vec4(col,1.);
+  col+=(hash12(fc+.7)-.5)/255.;                     // debanding dither
+  return col;
 }
 `;
 
-// ---- Synoptic renderer: the same field, sliced into isopleths ----
-const CHART_FRAG = `#version 300 es
-` + COMMON + `
+const SKY_FRAG = `#version 300 es
+`+COMMON+SKY_BODY+`
+out vec4 o;
+void main(){ o=vec4(renderSky(gl_FragCoord.xy),1.); }
+`;
+
+// ---- Engraving: the same light, re-inked as a woodcut.
+//      Hatch direction follows the wind; hatch density follows optical depth. ----
+const ENGRAVE_FRAG = `#version 300 es
+`+COMMON+SKY_BODY+`
+out vec4 o;
+void main(){
+  vec3 c=renderSky(gl_FragCoord.xy);
+  float lum=SAT(dot(c,vec3(.3,.59,.11)));
+  vec2 dir=normalize(vec2(u_toLow.x-u_toLow.y*.3,.45)+.001);
+  float sc=.55;
+  float h1=sin(dot(gl_FragCoord.xy,dir)*sc);
+  float h2=sin(dot(gl_FragCoord.xy,vec2(-dir.y,dir.x))*sc*1.13);
+  float h3=sin(dot(gl_FragCoord.xy,normalize(dir+vec2(-dir.y,dir.x)))*sc*1.31);
+  float ink=0.;
+  ink=max(ink,step(lum,.82)*smoothstep(.15,.6,h1));
+  ink=max(ink,step(lum,.60)*smoothstep(.15,.6,h2));
+  ink=max(ink,step(lum,.38)*smoothstep(.05,.5,h3));
+  ink=max(ink,step(lum,.15));
+  vec3 paper=vec3(.93,.89,.80), inkc=vec3(.14,.10,.08);
+  o=vec4(mix(paper,inkc,ink*.92),1.);
+}
+`;
+
+// ---- Terminal: the same light, quantized to a phosphor glyph ramp. ----
+const TERM_FRAG = `#version 300 es
+`+COMMON+SKY_BODY+`
+out vec4 o;
+const uint G[48]=uint[48](
+  0u,0u,0u,0u,0u,0u,0u,0u,                        // space
+  0u,0u,0u,24u,24u,0u,0u,0u,                      // .
+  0u,24u,24u,0u,0u,24u,24u,0u,                    // :
+  0u,24u,24u,126u,126u,24u,24u,0u,                // +
+  36u,36u,255u,36u,36u,255u,36u,36u,              // #
+  126u,255u,219u,219u,219u,255u,126u,0u);         // @
+void main(){
+  vec2 cellSz=vec2(9.,16.);
+  vec2 cell=floor(gl_FragCoord.xy/cellSz);
+  vec3 c=renderSky((cell+.5)*cellSz);
+  float lum=SAT(dot(c,vec3(.3,.59,.11))+(hash12(cell)-.5)*.14);
+  int gi=int(lum*5.99);
+  vec2 f=fract(gl_FragCoord.xy/cellSz);
+  ivec2 bp=ivec2(f*8.);
+  uint row=G[gi*8+(7-bp.y)];
+  bool on=((row>>uint(bp.x))&1u)==1u;
+  vec3 colr=on?vec3(.16,1.,.28)*(.3+.8*lum):vec3(.012,.03,.012);
+  o=vec4(colr,1.);
+}
+`;
+
+// ---- shared palette chunk for the diagrammatic readings ----
+const PAL_CHUNK = `
 uniform vec3 u_pal[5];
 uniform float u_levels;
-out vec4 o;
-
 vec3 pal(float t){
   t=SAT(t)*4.;
   vec3 c=mix(u_pal[0],u_pal[1],SAT(t));
@@ -774,6 +839,12 @@ vec3 pal(float t){
   c=mix(c,u_pal[3],SAT(t-2.));
   return mix(c,u_pal[4],SAT(t-3.));
 }
+`;
+
+// ---- Synoptic renderer: the same field, sliced into isopleths ----
+const CHART_FRAG = `#version 300 es
+` + COMMON + PAL_CHUNK + `
+out vec4 o;
 
 const int NSLICE=12;
 const float CHART_R=24.;
@@ -824,6 +895,171 @@ void main(){
   vec3 col=acc+trans*bgcol;
   col=pow(SAT(col),vec3(1./2.2));
   col+=(hash12(gl_FragCoord.xy+.7)-.5)/255.;
+  o=vec4(col,1.);
+}
+`;
+
+// ---- Transect: a vertical slice through the volume, aligned with the
+//      low-level wind, drawn as filled contour bands — a radar RHI scan
+//      of an imaginary storm. The field advects through the plane. ----
+const TRANSECT_FRAG = `#version 300 es
+` + COMMON + PAL_CHUNK + `
+uniform vec2 u_toLow;
+out vec4 o;
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_res;
+  float s=(uv.x-.5)*52.;
+  float alt=mix(-.8,11.,uv.y);
+  vec2 xz=u_toLow*s;
+  vec3 col=mix(pal(0.),vec3(0.),.78);
+  float gA=1.-smoothstep(.015,.05,abs(alt-floor(alt+.5)));
+  float gS=1.-smoothstep(.06,.2,abs(s/5.-floor(s/5.+.5))*5.);
+  col+=pal(.5)*(gA*.05+gS*.045);
+  if(alt<0.){
+    col=mix(col,pal(.18)*.6,.5);
+  }else{
+    float d=map(vec3(xz.x,alt,xz.y),1.2,false);
+    float v=d*u_levels;
+    float f=abs(fract(v-.5)-.5);
+    float line=(1.-smoothstep(.02,.09,f))*smoothstep(.015,.05,d);
+    float fill=smoothstep(.02,.85,d);
+    vec3 hcol=pal(.2+.75*SAT(alt/9.5));
+    col=mix(col,hcol*.5,fill*.55);
+    col+=hcol*line*.8;
+  }
+  float lcl=1.-smoothstep(.01,.05,abs(alt-u_baseKm));   // condensation level, dashed
+  col+=pal(.85)*lcl*step(.5,fract(s*.6))*.3;
+  col+=pal(.6)*(1.-smoothstep(.0,.06,abs(alt)))*.5;     // ground line
+  col=pow(SAT(col),vec3(1./2.2));
+  col+=(hash12(gl_FragCoord.xy+.7)-.5)/255.;
+  o=vec4(col,1.);
+}
+`;
+
+// ---- Flow: the clouds go invisible and the wind itself is the subject.
+//      Each altitude's air is combed into filaments that slide along their
+//      own layer's wind — shear as stacked, disagreeing currents. ----
+const FLOW_FRAG = `#version 300 es
+` + COMMON + PAL_CHUNK + `
+uniform vec2 u_toLow,u_toMid,u_toHigh;
+out vec4 o;
+float ribbons(vec2 xz, vec2 dir, vec2 ofsL, float seedk){
+  vec2 pp=vec2(dot(xz+ofsL,dir), dot(xz+ofsL,vec2(-dir.y,dir.x)));
+  float f=fbm2(vec2(pp.x*.045,pp.y*.8)+seedk);
+  return smoothstep(.56,.66,f)*(1.-smoothstep(.66,.8,f));
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_res;
+  vec2 xz=vec2((uv.x-.5)*u_aspect,uv.y-.5)*46.;
+  vec3 col=mix(pal(0.),vec3(0.),.82);
+  float r=length(xz);
+  vec2 g2=abs(fract(xz/10.)-.5)*10.;
+  col+=pal(.4)*smoothstep(.14,.05,min(g2.x,g2.y))*.05;
+  col+=pal(.5)*smoothstep(.3,.08,abs(r-22.))*.2;
+  float presence=covLowAt(xz);
+  col+=pal(.30)*ribbons(xz,u_toLow,u_ofsLow,3.1)*(.2+.8*presence)*.6;
+  col+=pal(.55)*ribbons(xz,u_toMid,u_ofsMid,7.7)*(.15+.85*u_covMid)*.5;
+  col+=pal(.80)*ribbons(xz,u_toHigh,u_ofsHigh,11.3)*(.15+.85*u_covHigh)*.45;
+  col+=pal(.9)*smoothstep(.5,.1,r)*.25;                 // the station
+  col=pow(SAT(col),vec3(1./2.2));
+  col+=(hash12(gl_FragCoord.xy+.7)-.5)/255.;
+  o=vec4(col,1.);
+}
+`;
+
+// ---- Census: the cloud as a statistical swarm. Droplets are sampled
+//      from the same density field and lit by the same sun. ----
+const CENSUS_FRAG = `#version 300 es
+` + COMMON + `
+out vec4 o;
+void main(){
+  vec2 ndc=(gl_FragCoord.xy/u_res)*2.-1.;
+  vec3 rd=normalize(u_camFwd + ndc.x*u_aspect*u_fovTan*u_camRight + ndc.y*u_fovTan*u_camUp);
+  vec3 ro=u_camPos;
+  vec3 col=vec3(.004,.007,.012)*(1.+u_night);
+  if(rd.y<0.) col*=.4;
+  col+=vec3(.02,.04,.06)*(1.-smoothstep(.0,.06,abs(rd.y)));  // horizon whisper
+  float bot=u_baseKm-max(u_precip,u_cellRain)*1.3;
+  float top=max(u_baseKm+u_thick,(u_covMid>0.01)?5.05:0.);
+  float ta=(bot-ro.y)/rd.y, tb=(top-ro.y)/rd.y;
+  float t0=max(min(ta,tb),0.), t1=min(max(ta,tb),30.);
+  if(abs(rd.y)<1e-3){ t0=0.; t1=26.; }
+  if(t1>t0){
+    float jitter=hash12(gl_FragCoord.xy);
+    const int N=54;
+    float dt=(t1-t0)/float(N);
+    float t=t0+jitter*dt, trans=1.;
+    for(int i=0;i<N;i++){
+      vec3 p=ro+rd*t;
+      float d=map(p,1.5,false);
+      if(d>.006){
+        vec3 g=floor(p*4.);
+        float hh=hash12(g.xz*3.17+g.y*17.7);
+        if(hh<d*1.5){
+          float ld=mapLow(p+u_sunDir*.4,2.,false)+mapLow(p+u_sunDir*1.2,2.,false);
+          float E=exp(-ld*6.);
+          vec3 dc=mix((u_zen+u_hor)*.5, u_sunCol*1.5, E);
+          vec3 ctr=(g+.5)/4.;
+          float r2=length(p-ctr)*4.;
+          float pt=exp(-r2*r2*7.);
+          col+=trans*dc*pt*.9;
+          trans*=1.-.1*pt;
+        }
+        trans*=exp(-d*7.*dt);
+        if(trans<.05) break;
+      }
+      t+=dt;
+    }
+  }
+  col=pow(SAT(col),vec3(1./2.2));
+  col+=(hash12(gl_FragCoord.xy+.7)-.5)/255.;
+  o=vec4(col,1.);
+}
+`;
+
+// ---- Meteogram: the column overhead, written into history.
+//      A tiny profile pass samples the station's air each tick;
+//      the display scrolls it as a time-height score. ----
+const PROFILE_FRAG = `#version 300 es
+` + COMMON + `
+uniform float u_hourN;
+out vec4 o;
+void main(){
+  float alt=gl_FragCoord.y/64.*10.5;
+  float d=map(vec3(0.,alt,0.),1.,false);
+  o=vec4(SAT(d*1.2), SAT(max(u_precip,u_cellRain)), 1., u_hourN);   // b=1: column written
+}
+`;
+const METEO_FRAG = `#version 300 es
+precision highp float;
+` + PAL_CHUNK.replace('vec3 pal','#define SAT(x) clamp(x,0.,1.)\nvec3 pal') + `
+uniform sampler2D u_meteoTex;
+uniform float u_meteoHead;
+uniform vec2 u_res;
+float hash12m(vec2 p){ vec3 q=fract(vec3(p.xyx)*.1031); q+=dot(q,q.yzx+33.33); return fract((q.x+q.y)*q.z); }
+out vec4 o;
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_res;
+  float cx=fract(u_meteoHead+uv.x);
+  vec4 sm=texture(u_meteoTex,vec2(cx,uv.y));
+  vec3 col=mix(pal(0.),vec3(0.),.8);
+  float gA=1.-smoothstep(.01,.04,abs(fract(uv.y*10.5/2.)*2.-1.)*.5);   // 2 km lines
+  col+=pal(.5)*gA*.04;
+  float hr=sm.a*24.;
+  float t6=abs(hr/6.-floor(hr/6.+.5))*6.;
+  col+=pal(.45)*(1.-smoothstep(.02,.1,t6))*.12*sm.b;                   // 6-hour ticks (written columns only)
+  float d=sm.r;
+  float v=d*u_levels;
+  float f=abs(fract(v-.5)-.5);
+  float line=(1.-smoothstep(.03,.1,f))*smoothstep(.02,.06,d);
+  float fill=smoothstep(.02,.9,d);
+  vec3 hcol=pal(.2+.75*uv.y);
+  col=mix(col,hcol*.5,fill*.6);
+  col+=hcol*line*.75;
+  if(uv.y<.045) col+=pal(.9)*sm.g*.7;                                  // rain trace
+  col+=pal(.85)*(1.-smoothstep(.0,.004,abs(uv.x-.995)))*.4;            // the present
+  col=pow(SAT(col),vec3(1./2.2));
+  col+=(hash12m(gl_FragCoord.xy)-.5)/255.;
   o=vec4(col,1.);
 }
 `;
@@ -962,7 +1198,9 @@ gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1, 1,-1, -1,1, 1,1]),gl.STAT
 gl.enableVertexAttribArray(0);
 gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
 
-let progSky=null, progChart=null, texBase=null, texDtl=null;
+let progSky=null, progChart=null, texBase=null, texDtl=null,
+    progTransect=null, progFlow=null, progCensus=null, progEngrave=null,
+    progTerm=null, progMeteo=null;
 
 function bake3D(size,fragSrc,mips){
   const pm=program(fragSrc);
@@ -1287,15 +1525,34 @@ QUALITIES.forEach((q,i)=>{
   qList.appendChild(b);
 });
 
-// mode
+// readings — the ways of seeing the same atmosphere
+const READINGS=['sky','chart','transect','flow','census','engrave','terminal','meteogram'];
+const PALETTED=new Set(['chart','transect','flow','meteogram']);
 function setMode(m){
+  if(!READINGS.includes(m)) m='sky';
+  if(m!==mode&&!debugOpen){                 // a blink between readings
+    canvas.style.opacity=.1;
+    clearTimeout(setMode._t);
+    setMode._t=setTimeout(()=>{canvas.style.opacity=1;},300);
+  }
   mode=m;
   $('mode-sky').classList.toggle('active',m==='sky');
   $('mode-chart').classList.toggle('active',m==='chart');
-  $('palette-section').style.display=m==='chart'?'':'none';
+  document.querySelectorAll('#reading-list .preset-btn').forEach(b=>b.classList.toggle('active',b.dataset.m===m));
+  $('palette-section').style.display=PALETTED.has(m)?'':'none';
 }
 $('mode-sky').addEventListener('click',()=>setMode('sky'));
 $('mode-chart').addEventListener('click',()=>setMode('chart'));
+const rlist=$('reading-list');
+READINGS.forEach(m=>{
+  const b=document.createElement('button');
+  b.className='preset-btn'; b.dataset.m=m; b.textContent=m;
+  b.addEventListener('click',()=>{
+    setMode(m);
+    if(Cine) Cine.holdUntil=performance.now()/1000+45;
+  });
+  rlist.appendChild(b);
+});
 
 // location
 $('btn-loc-go').addEventListener('click',doSearch);
@@ -1647,13 +1904,25 @@ Cine={
     const pr=probeField(this.cur.pos[0],this.cur.pos[2]);
     const sun=solar(P.hour,LOC.lat,dayOfYear());
     const night=sun.el<-4;
+    const E=Director?Director.E:0;
+    const abst=E<.6;                        // storms command the physical sky
     const cand=[];
     const W=(name,w,make)=>{ if(w>0) cand.push({name,w:name===this.lastName?w*.4:w,make}); };
     W('horizon gaze',1.0,()=>this.horizonGaze(pr,sun));
     W('underside crawl',P.covLow>.28?.9:0,()=>this.underside(pr));
     W('rise through',(P.covLow>.32&&P.conv>.35&&!night)?.8:0,()=>this.riseThrough());
     W('tower orbit',(pr.maxD>.4&&P.conv>.45)?1.2:0,()=>this.towerOrbit(pr));
-    W('synoptic pull',night?.12:.28,()=>this.synoptic());
+    W('synoptic pull',abst?(night?.1:.22):0,()=>this.synoptic());
+    // the other readings of the same field
+    W('transect',(abst?.18:0)+(E>.7?.45:0),()=>this.still('transect',26,20));
+    W('flow study',abst?.13:0,()=>this.still('flow',22,18));
+    W('meteogram',abst?.10:0,()=>this.still('meteogram',18,14));
+    W('census',abst?(night?.3:.08):0,()=>this.reskin(this.horizonGaze(pr,sun),'census'));
+    W('engraving',(abst&&!night)?.11:0,()=>this.reskin(this.horizonGaze(pr,sun),'engrave'));
+    W('terminal',abst?(night?.18:.11):0,()=>this.reskin(this.horizonGaze(pr,sun),'terminal'));
+    W('taxonomy',(abst&&!night&&P.covLow>.2)?.15:0,()=>{
+      const g=this.horizonGaze(pr,sun); g.taxo=true; return g;
+    });
     let tot=0; for(const c of cand) tot+=c.w;
     let x=r()*tot, sel=cand[0];
     for(const c of cand){ x-=c.w; if(x<=0){sel=c;break;} }
@@ -1711,6 +1980,11 @@ Cine={
                 pitch:Math.atan2(ty-cy,rad0)*.8,fov:58};
       } };
   },
+  still(m,dmin,dspan){
+    const r=this.rng;
+    return { dur:dmin+r()*dspan, mode:m, at:()=>null };
+  },
+  reskin(g,m){ g.mode=m; return g; },
   synoptic(){
     const r=this.rng, y0=camChart.yaw, rate=(r()<.5?-1:1)*.02;
     return { dur:24+r()*14, mode:'chart',
@@ -1725,6 +1999,7 @@ Cine={
     this.shotT+=dtR;
     const D=this.shot.at(this.shotT,dtR);
     if(this.shot.mode&&mode!==this.shot.mode) setMode(this.shot.mode);
+    TaxO.active=!!this.shot.taxo;
     if(!D) return;
     const k=1-Math.exp(-dtR/2.4), c=this.cur;
     for(let i=0;i<3;i++) c.pos[i]+=(D.pos[i]-c.pos[i])*k;
@@ -1832,6 +2107,70 @@ Cells={
   },
 };
 
+/* ======================================================
+   TAXONOMY OVERLAY — the machine names what it grows,
+   in Luke Howard's Latin, with faint phosphor leader lines.
+   ====================================================== */
+const TaxO={
+  active:false, lastT:0,
+  el:document.getElementById('tax-layer'),
+  clear(){ if(this.el.childNodes.length) this.el.innerHTML=''; },
+  update(now){
+    if(!this.active||mode!=='sky'||debugOpen){ this.clear(); return; }
+    if(now-this.lastT<1400) return;
+    this.lastT=now;
+    const pr=probeField(camSky.pos[0],camSky.pos[2]);
+    const picks=[], used=[];
+    const idx=[...Array(pr.n).keys()].sort((a,b)=>pr.cov[b]-pr.cov[a]);
+    for(const i of idx){
+      if(pr.cov[i]<.25) break;
+      const x=pr.pts[i*2], z=pr.pts[i*2+1];
+      if(used.some(u=>Math.hypot(u[0]-x,u[1]-z)<10)) continue;
+      used.push([x,z]); picks.push({x,z,cov:pr.cov[i]});
+      if(picks.length>=2) break;
+    }
+    const S=sceneState(), cam=camera();
+    const Wd=stage.clientWidth, Hd=stage.clientHeight, asp=Wd/Hd;
+    this.clear();
+    const proj=(wx,wy,wz)=>{
+      const rel=[wx-cam.pos[0],wy-cam.pos[1],wz-cam.pos[2]];
+      const z=rel[0]*cam.fwd[0]+rel[1]*cam.fwd[1]+rel[2]*cam.fwd[2];
+      if(z<1.5) return null;
+      const x=rel[0]*cam.right[0]+rel[1]*cam.right[1]+rel[2]*cam.right[2];
+      const y=rel[0]*cam.up[0]+rel[1]*cam.up[1]+rel[2]*cam.up[2];
+      const nx=x/(z*cam.fovTan*asp), ny=y/(z*cam.fovTan);
+      if(Math.abs(nx)>.92||Math.abs(ny)>.85) return null;
+      return [(nx*.5+.5)*Wd,(1-(ny*.5+.5))*Hd];
+    };
+    const label=(p,txt)=>{
+      const d=document.createElement('div');
+      d.className='tax-label';
+      d.style.left=p[0]+'px'; d.style.top=p[1]+'px';
+      d.textContent=txt;
+      this.el.appendChild(d);
+    };
+    for(const c of picks){
+      const rainNear=Cells&&Cells.list.some(k=>k.rain&&Math.hypot(k.x-c.x,k.z-c.z)<7);
+      const cellNear=Cells&&Cells.list.some(k=>k.str>.6&&Math.hypot(k.x-c.x,k.z-c.z)<6);
+      let name;
+      if(rainNear) name='Cumulonimbus calvus';
+      else if(cellNear) name='Cumulus congestus';
+      else if(P.conv<.25) name=P.covLow>.8?'Stratus opacus':'Stratocumulus stratiformis';
+      else name=c.cov>.6?'Cumulus mediocris':'Cumulus humilis';
+      const p=proj(c.x,P.base+S.thickAmb*.55,c.z);
+      if(p) label(p,name);
+    }
+    if(P.covMid>.35){
+      const p=proj(cam.pos[0]+cam.fwd[0]*16,4.6,cam.pos[2]+cam.fwd[2]*16);
+      if(p) label(p,'Altocumulus perlucidus');
+    }
+    if(P.covHigh>.35){
+      const p=proj(cam.pos[0]+cam.fwd[0]*26,8.6,cam.pos[2]+cam.fwd[2]*26);
+      if(p) label(p,'Cirrus fibratus');
+    }
+  },
+};
+
 Director.reseed(seed);
 Cine.reseed(seed);
 Cells.reseed(seed);
@@ -1841,6 +2180,8 @@ window.__nub={
   get P(){return P;}, get dirT(){return dirT;}, set dirT(v){dirT=v;},
   get Director(){return Director;}, get Cine(){return Cine;}, get mode(){return mode;},
   get Cells(){return Cells;},
+  setMode,
+  readings:()=>READINGS.slice(),
   ff(toT,step){ // fast-forward the director (and cells) to time toT
     step=step||4;
     while(dirT<toT){
@@ -1865,7 +2206,7 @@ function resize(){
 new ResizeObserver(resize).observe(stage);
 
 function camera(){
-  if(mode==='sky'){
+  if(mode!=='chart'){
     const cy=Math.cos(camSky.yaw), sy=Math.sin(camSky.yaw);
     const cp=Math.cos(camSky.pitch), sp=Math.sin(camSky.pitch);
     const fwd=[sy*cp,sp,cy*cp];
@@ -1892,10 +2233,12 @@ function sceneState(){
   const w=layerWinds();
   const hiF=fromVec(w.hiD);
   const toLow=fromVec(w.lowD).map(v=>-v);
+  const toMid=fromVec(w.midD).map(v=>-v);
+  const toHigh=fromVec(w.hiD).map(v=>-v);
   const thickAmb=lerp(0.45,6.8,Math.pow(P.conv,1.35));
   const cellTop=Cells?Cells.maxStr*5.2:0;      // strong cells raise the roof
   const thick=Math.min(Math.max(thickAmb,cellTop),7.2);
-  return {sun,col,sunDir,w,hiF,toLow,thick,thickAmb};
+  return {sun,col,sunDir,w,hiF,toLow,toMid,toHigh,thick,thickAmb};
 }
 function atmoUniforms(pm,S){
   U.f(pm,'u_time',simT);
@@ -1920,6 +2263,9 @@ function atmoUniforms(pm,S){
   U.f2(pm,'u_ofsHigh',...ofs.high);
   U.f2(pm,'u_shearV',S.toLow[0]*P.shear*1.5,S.toLow[1]*P.shear*1.5);
   U.f2(pm,'u_hiDir',...S.hiF);
+  U.f2(pm,'u_toLow',...S.toLow);
+  U.f2(pm,'u_toMid',...S.toMid);
+  U.f2(pm,'u_toHigh',...S.toHigh);
   U.f3(pm,'u_seed3',...seed3);
   U.f2(pm,'u_cellCtr',...Cells.ctr);
   U.f(pm,'u_curlAmt',1.0+P.shear*2.2);
@@ -1928,8 +2274,20 @@ function atmoUniforms(pm,S){
   gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_3D,texDtl); U.i(pm,'u_texDtl',1);
   gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D,texCell); U.i(pm,'u_cellTex',2);
 }
+function activeProg(){
+  switch(mode){
+    case 'chart': return progChart;
+    case 'transect': return progTransect;
+    case 'flow': return progFlow;
+    case 'census': return progCensus;
+    case 'engrave': return progEngrave;
+    case 'terminal': return progTerm;
+    case 'meteogram': return progMeteo;
+    default: return progSky;
+  }
+}
 function draw(){
-  const pm=mode==='sky'?progSky:progChart;
+  const pm=activeProg();
   if(!pm) return;
   const S=sceneState();
   if(texCell){
@@ -1951,17 +2309,42 @@ function draw(){
   U.f(pm,'u_fovTan',cam.fovTan);
   U.f(pm,'u_aspect',canvas.width/canvas.height);
   atmoUniforms(pm,S);
-  if(mode==='chart'){
-    const flat=[];
-    PALETTES[palIdx].c.forEach(h=>flat.push(...hex2rgb(h)));
-    U.f3v(pm,'u_pal',flat);
-    U.f(pm,'u_levels',4);
+  const flat=[];
+  PALETTES[palIdx].c.forEach(h=>flat.push(...hex2rgb(h)));
+  U.f3v(pm,'u_pal',flat);
+  U.f(pm,'u_levels',mode==='chart'?4:6);
+  if(mode==='meteogram'&&texMeteo){
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D,texMeteo);
+    U.i(pm,'u_meteoTex',3);
+    U.f(pm,'u_meteoHead',meteoHead/METEO_W);
   }
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 }
 
+// ---- meteogram history: one column of the overhead air every tick ----
+const METEO_W=288;
+let texMeteo=null, profileFB=null, profileTex=null, meteoHead=0, lastMeteoT=0;
+const profileBuf=new Uint8Array(64*4);
+function captureProfile(){
+  if(!progProfile||!texMeteo) return;
+  const S=sceneState();
+  gl.bindFramebuffer(gl.FRAMEBUFFER,profileFB);
+  gl.viewport(0,0,1,64);
+  gl.useProgram(progProfile.prog);
+  gl.bindVertexArray(vao);
+  atmoUniforms(progProfile,S);
+  U.f(progProfile,'u_hourN',P.hour/24);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  gl.readPixels(0,0,1,64,gl.RGBA,gl.UNSIGNED_BYTE,profileBuf);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  gl.bindTexture(gl.TEXTURE_2D,texMeteo);
+  gl.texSubImage2D(gl.TEXTURE_2D,0,meteoHead,0,1,64,gl.RGBA,gl.UNSIGNED_BYTE,profileBuf);
+  meteoHead=(meteoHead+1)%METEO_W;
+}
+
 // GPU probe readback — the cinematographer's eyes
-let progProbe=null, probeFB=null, probeTex=null, texCell=null;
+let progProbe=null, probeFB=null, probeTex=null, texCell=null, progProfile=null;
 const probeBuf=new Uint8Array(PROBE_SIZE*PROBE_SIZE*4);
 function probeField(cx,cz){
   const empty={n:0,cov:[],pts:[],maxD:0,maxDPt:[cx,cz],maxCov:0};
@@ -2033,6 +2416,8 @@ function frame(tNow){
     }
     if(telemetryOn) updateTelemetry();
   }
+  TaxO.update(tNow);
+  if(!paused&&tNow-lastMeteoT>400){ lastMeteoT=tNow; captureProfile(); }
   draw();
 }
 
@@ -2049,6 +2434,29 @@ setTimeout(()=>{
     texBase=bake3D(128,GEN_BASE_FRAG,true);
     texDtl=bake3D(32,GEN_DTL_FRAG,true);
     progProbe=program(PROBE_FRAG);
+    progTransect=program(TRANSECT_FRAG);
+    progFlow=program(FLOW_FRAG);
+    progCensus=program(CENSUS_FRAG);
+    progEngrave=program(ENGRAVE_FRAG);
+    progTerm=program(TERM_FRAG);
+    progMeteo=program(METEO_FRAG);
+    progProfile=program(PROFILE_FRAG);
+    texMeteo=gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D,texMeteo);
+    gl.texStorage2D(gl.TEXTURE_2D,1,gl.RGBA8,METEO_W,64);
+    gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,METEO_W,64,gl.RGBA,gl.UNSIGNED_BYTE,
+                     new Uint8Array(METEO_W*64*4));   // texStorage contents are undefined
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    profileTex=gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D,profileTex);
+    gl.texStorage2D(gl.TEXTURE_2D,1,gl.RGBA8,1,64);
+    profileFB=gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER,profileFB);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,profileTex,0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);
     texCell=gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D,texCell);
     gl.texStorage2D(gl.TEXTURE_2D,1,gl.RGBA8,CELL_TEX,CELL_TEX);
