@@ -48,17 +48,23 @@ The Mandelbrot set, rendered in GLSL with smooth iteration-count coloring and or
 
 ## [Nubilous](nubilous.html)
 
-*The sky, taught to happen again.*
+*The sky, taught to happen again — and left running.*
 
 ![A volumetric cumulus deck at golden hour](preview-nubilous-sky.png)
 
-Clouds are the oldest generative system: a noise field (humidity), a threshold rule (saturation), and external forces (wind shear, convection, sunlight) producing four billion years of non-repeating form. Nubilous runs that machine honestly — a raymarched volumetric atmosphere whose cloud base is derived from temperature and dewpoint, whose towers lean with the wind shear, whose light is Beer-Lambert extinction and forward scattering, not paint. Name a real place and the piece fetches its actual sky — cloud cover by altitude, winds at four pressure levels, the sun where it truly stands — and grows it in time-lapse.
+Clouds are the oldest generative system: a noise field (humidity), a threshold rule (saturation), and external forces (wind shear, convection, sunlight) producing four billion years of non-repeating form. Nubilous runs that machine honestly — a raymarched volumetric atmosphere whose cloud base is derived from temperature and dewpoint, whose towers lean with the wind shear, whose light is Beer-Lambert extinction and forward scattering, not paint — and it runs *itself*. Open it and there is nothing but sky.
 
-Then the abstraction: **Synoptic mode** throws away the light and keeps the law. The identical density field is re-read as drifting altitude-stacked isopleths — a weather chart of its own imaginary sky, each contour terrace sliding at its altitude's own wind. Same physics, different flesh.
+A **conductor** performs the weather: low-pressure systems cross a virtual map on a schedule set by the seed, and the classic frontal succession plays at the station you watch from — cirrus vanguard, thickening veil, nimbostratus rain, the cold front's squall, showery clearing, ridge calm — with the wind veering through each passage because it is computed from the actual pressure gradient. Convection is alive: individual cells rise, mature, rain out and collapse; a raining cell drops a cold pool whose gust front lifts daughter cells at its rim, and squall lines organize themselves out of three rules. Days pass in about twenty-five minutes; time slows to savor the fronts and hurries through the lulls. A **cinematographer** probes the density field for the action and works a shot grammar — horizon gaze, underside crawl, a rise through the deck into whiteout and out the top, a slow orbit of a growing tower.
+
+And the sky keeps being *re-read*. The identical field drifts between renderings: **Synoptic** isopleth terraces; a **Transect** slice like a radar scan; **Flow**, where the clouds go invisible and each altitude's wind is combed into filaments; a **Census** of droplets sampled from the field and lit by the same sun; an **Engraving** whose hatching follows the wind; a phosphor **Terminal** glyph sky; a **Meteogram** writing the overhead column into a scrolling time–height score; and a **Taxonomy** overlay in which the machine names what it grows, in Luke Howard's Latin. Storms interrupt the abstractions and command the physical sky. Rare things are earned, never scripted: crepuscular rays through broken cover at low sun, the 22° halo when cirrus veils the sun, a rainbow when rain stands opposite, night lightning inside the cells, the moon at its true phase.
 
 ![The same atmosphere re-read as drifting contour terraces](preview-nubilous-synoptic.png)
 
-**Technique:** WebGL 2.0 raymarcher over GPU-baked tiling Perlin-Worley 3-D noise textures. Dual-lobe Henyey-Greenstein phase, powder darkening, multi-octave light march, solar position from date and latitude. Live weather from the keyless Open-Meteo API (fetched by your browser; falls back to manual skies). Seeded and fully reproducible.
+Given the network, the Earth itself becomes the random number generator: the piece roams to a real place every few minutes, fetches its actual sky from Open-Meteo — cloud cover by altitude, winds at four pressure levels, the local sun — and eases into it like a slow crossfade of climates, with a field-recording caption. Offline, the conductor plays on.
+
+**Keys:** `i` telemetry · `` ` `` debug instrument (the full control panel) · `m` sound (wind, rain, and thunder that arrives late, from the distance of the flash) · `space` pause · drag to look (the director waits for you). URL: `?seed=` `?place=` `?roam=0` `?mute` `?debug`.
+
+**Technique:** WebGL 2.0 raymarcher over GPU-baked tiling Perlin-Worley 3-D noise textures; dual-lobe Henyey-Greenstein phase, powder darkening, multi-octave light march; CPU cell entities rasterized into the density field; nine shader readings of one field; solar and lunar position from date and latitude; WebAudio weather score. One self-contained file. Seeded and reproducible — same seed, same weather history.
 
 **Default seed 1802** — the year Luke Howard named the clouds, and the formless became a taxonomy.
 

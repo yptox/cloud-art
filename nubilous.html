@@ -307,6 +307,15 @@
     content:"";position:absolute;left:50%;top:100%;width:1px;height:16px;
     background:linear-gradient(rgba(0,255,0,.5),rgba(0,255,0,0));
   }
+  .fieldnote{
+    position:absolute;bottom:56px;left:24px;z-index:4;
+    font-family:var(--mono);font-size:19px;letter-spacing:.8px;color:var(--cyan);
+    background:rgba(4,8,14,.6);border-left:2px solid var(--cyan-deep);
+    padding:4px 14px;pointer-events:none;
+    opacity:0;transition:opacity 1.2s;white-space:nowrap;
+    text-shadow:0 0 6px rgba(107,199,255,.4);
+  }
+  .fieldnote.show{opacity:1}
 </style>
 </head>
 <body>
@@ -466,6 +475,7 @@ summon real weather</div>
     </div>
     <div class="telemetry" id="telemetry"></div>
     <div id="tax-layer"></div>
+    <div class="fieldnote" id="fieldnote"></div>
   </div>
 </main>
 </div>
@@ -648,6 +658,10 @@ float map(vec3 p, float lod, bool dtl){
 //      Shared by the Sky reading and its re-inkings (Engraving, Terminal). ----
 const SKY_BODY = `
 uniform vec2 u_toLow;
+uniform float u_flash;        // lightning envelope 0..1
+uniform vec2  u_flashPos;     // world xz of the flashing cell
+uniform vec3  u_moonDir;
+uniform float u_moonPhase;    // illuminated fraction
 
 float phaseHG(float ct,float g){
   float g2=g*g;
@@ -666,6 +680,24 @@ vec3 skyGrad(vec3 rd){
     float st=hash12(sq);
     sky+=vec3(.9)*smoothstep(.9985,1.,st)*u_night*SAT(rd.y*3.);
   }
+  if(u_night>0.05&&u_moonDir.y>0.){              // the moon, with its real phase
+    float mdot=clamp(dot(rd,u_moonDir),-1.,1.);
+    float mang=acos(mdot);
+    const float mr=.0095;
+    if(mang<mr*5.){
+      vec3 mx=normalize(cross(u_moonDir,vec3(0,1,0)));
+      vec3 my=cross(mx,u_moonDir);
+      vec2 lc=vec2(dot(rd,mx),dot(rd,my))/mr;
+      float din=length(lc);
+      float disc=1.-smoothstep(.92,1.05,din);
+      vec2 sc=lc-vec2((1.-u_moonPhase)*2.2,0.);  // the shadow ball rolls away as it fills
+      float lit=disc*smoothstep(.9,1.2,length(sc));
+      lit=max(lit,disc*u_moonPhase*u_moonPhase*.7);
+      sky+=vec3(.85,.87,.9)*lit*.9*u_night;
+    }
+    sky+=vec3(.45,.55,.75)*.05*u_night*u_moonPhase*pow(SAT(mdot),8.);
+  }
+  sky+=vec3(.75,.8,1.)*u_flash*.12;              // distant lightning washes the sky
   return sky;
 }
 
@@ -725,7 +757,11 @@ vec4 marchClouds(vec3 ro, vec3 rd, float jitter){
       float E=beer*mix(1.,powder,.55*SAT(1.-ct));             // powder darkens backscatter
       float hf=SAT((p.y-u_baseKm)/max(u_thick,.001));
       vec3 amb=mix(u_hor,u_zen,.45)*(.25+.75*hf)*.62*mix(gloom,1.,hf*.5);
+      amb+=vec3(.8,.85,1.1)*u_flash*3.*exp(-length(p.xz-u_flashPos)*.12);  // lightning inside the cell
       vec3 Li=u_sunCol*E*ph*45. + amb;
+      // iridescent fringe where the cloud is thin against the sun
+      float ir=pow(SAT(ct),30.)*smoothstep(.12,.0,d)*smoothstep(0.,.02,d);
+      Li+=u_sunCol*(.5+.5*cos(6.283*(vec3(0.,.33,.66)+lden*22.)))*ir*4.;
       Li=mix(Li,u_hor,SAT(1.-exp(-t*fogK)));                 // aerial perspective
       float alpha=exp(-d*SIGMA*dt);
       acc+=trans*Li*(1.-alpha);
@@ -763,6 +799,39 @@ vec3 renderSky(vec2 fc){
     bg=mix(bg,ci.rgb,ci.a);
     float sd=SAT(dot(rd,u_sunDir));
     bg+=u_sunCol*(pow(sd,2600.)*16.+pow(sd,300.)*.8)*step(-0.03,u_sunDir.y);
+    // 22-degree halo: earned only when a cirrus veil crosses the sun
+    if(u_covHigh>.25&&u_sunDir.y>.03){
+      float ang=degrees(acos(clamp(dot(rd,u_sunDir),-1.,1.)));
+      float ring=exp(-pow((ang-22.)/1.4,2.));
+      vec3 tint=mix(vec3(1.,.45,.35),vec3(.95,.95,1.),SAT((ang-20.)/3.));
+      bg+=tint*u_sunCol*ring*(.15+.85*ci.a)*u_covHigh*.3;
+    }
+    // rainbow: low sun behind you, rain ahead
+    if(u_precip>.25&&u_sunDir.y>.02&&u_sunDir.y<.67){
+      float ang=degrees(acos(clamp(dot(rd,-u_sunDir),-1.,1.)));
+      float t1=(ang-40.6)/2.4;
+      if(t1>0.&&t1<1.)
+        bg+=(.5+.5*cos(6.283*(vec3(.0,.33,.66)+t1*.9)))*sin(t1*3.14159)
+            *u_precip*.2*SAT(u_sunDir.y*3.)*SAT(rd.y*4.+.3);
+      float t2=(ang-50.2)/2.8;
+      if(t2>0.&&t2<1.)
+        bg+=(.5+.5*cos(6.283*(vec3(.66,.33,.0)+t2*.9)))*sin(t2*3.14159)*u_precip*.07;
+    }
+    // crepuscular rays: cloud shadows made visible in low-sun haze
+    float sunLow=SAT(1.-u_sunDir.y/.45);
+    if(u_sunDir.y>.01&&sunLow>.1&&u_covLow>.15&&u_covLow<.85){
+      float ph2=pow(sd,6.);
+      if(ph2>.02){
+        float ray=0.;
+        for(int i=0;i<10;i++){
+          vec3 sp=ro+rd*(float(i)+jitter)*1.4;
+          if(sp.y>u_baseKm) break;
+          vec2 q=sp.xz+u_sunDir.xz*((u_baseKm-sp.y)/max(u_sunDir.y,.05));
+          ray+=1.-SAT(covLowAt(q)*1.4);
+        }
+        bg+=u_sunCol*ray*.011*ph2*(.3+u_haze)*sunLow;
+      }
+    }
   }
   vec4 cl=marchClouds(ro,rd,jitter);
   vec3 col=cl.rgb+cl.a*bg;
@@ -1456,6 +1525,7 @@ function markManual(){
   if(LOC.live){ LOC.live=false; updateWxBox(); }
   P.windMidKmh=P.windMidDeg=P.windHighKmh=P.windHighDeg=null;
   if(Director) Director.anchor=null;
+  if(typeof roam!=='undefined'&&roam) roam.on=false;
   clearPresetActive();
 }
 for(const [id,key,fmt,weatherBound] of SLIDERS){
@@ -1620,6 +1690,7 @@ window.addEventListener('keydown',e=>{
   else if(e.key===' '){ e.preventDefault(); $('btn-playpause').click(); }
   else if(e.key==='`') setDebug(!debugOpen);
   else if(e.key==='i'||e.key==='I') setTelemetry(!telemetryOn);
+  else if(e.key==='m'||e.key==='M') AudioEng.toggle();
 });
 
 // debug instrument (the old panel) + telemetry + cursor fade
@@ -2108,6 +2179,153 @@ Cells={
 };
 
 /* ======================================================
+   PHENOMENA — the rare rewards. Lightning is scheduled by
+   the raining cells themselves; the moon keeps its phase.
+   ====================================================== */
+const Phenom={
+  flashAmp:0, flashPos:[0,0], flashDist:0,
+  update(dtR){
+    this.flashAmp*=Math.exp(-dtR/.11);
+    if(paused||!Cells) return;
+    const storms=Cells.list.filter(c=>c.rain&&c.str>.35);
+    if(storms.length&&Cells.rng()<storms.length*.06*dtR*((Director?Director.E:0)+.35)){
+      const c=storms[Math.floor(Cells.rng()*storms.length)];
+      this.flashAmp=.7+Cells.rng()*.5;
+      this.flashPos=[c.x,c.z];
+      this.flashDist=Math.hypot(c.x-camSky.pos[0],c.z-camSky.pos[2]);
+      AudioEng.thunder(this.flashDist);
+    }
+  },
+};
+function moonState(){
+  const days=(Date.now()-947182440000)/864e5;              // from the Jan 2000 new moon
+  const age=((days%29.5306)+29.5306)%29.5306/29.5306;      // 0 new → .5 full
+  const phase=(1-Math.cos(2*Math.PI*age))/2;               // illuminated fraction
+  const pos=solar(((P.hour-age*24)%24+24)%24,LOC.lat,dayOfYear());
+  const elR=pos.el*rad, azR=pos.az*rad;
+  return {dir:[Math.sin(azR)*Math.cos(elR),Math.sin(elR),Math.cos(azR)*Math.cos(elR)],phase};
+}
+
+/* ======================================================
+   SOUND — the weather scored by itself. Wind is filtered
+   noise whose cutoff tracks the wind; rain is a hiss that
+   tracks the rain; thunder arrives late, from the distance
+   the flash actually happened at. Starts on first gesture
+   (browser rule); 'm' mutes; ?mute starts silent.
+   ====================================================== */
+const AudioEng={
+  ctx:null, started:false, muted:QS.has('mute'),
+  master:null, windLP:null, windGain:null, rainGain:null, noiseBuf:null,
+  ensure(){
+    if(this.started||this.muted) return;
+    try{
+      const C=window.AudioContext||window.webkitAudioContext;
+      if(!C) return;
+      const ctx=this.ctx=new C();
+      const len=ctx.sampleRate*2;
+      this.noiseBuf=ctx.createBuffer(1,len,ctx.sampleRate);
+      const d=this.noiseBuf.getChannelData(0);
+      let last=0;
+      for(let i=0;i<len;i++){ const w=Math.random()*2-1; last=(last+.02*w)/1.02; d[i]=last*3.5; }
+      this.master=ctx.createGain();
+      this.master.gain.value=0;
+      this.master.connect(ctx.destination);
+      this.master.gain.linearRampToValueAtTime(.6,ctx.currentTime+3);
+      const mk=()=>{ const s=ctx.createBufferSource(); s.buffer=this.noiseBuf; s.loop=true; s.start(); return s; };
+      this.windLP=ctx.createBiquadFilter(); this.windLP.type='lowpass'; this.windLP.frequency.value=300;
+      this.windGain=ctx.createGain(); this.windGain.gain.value=.1;
+      mk().connect(this.windLP); this.windLP.connect(this.windGain); this.windGain.connect(this.master);
+      const rainBP=ctx.createBiquadFilter(); rainBP.type='bandpass'; rainBP.frequency.value=3600; rainBP.Q.value=.5;
+      this.rainGain=ctx.createGain(); this.rainGain.gain.value=0;
+      mk().connect(rainBP); rainBP.connect(this.rainGain); this.rainGain.connect(this.master);
+      this.started=true;
+    }catch(e){/* silence is acceptable weather */}
+  },
+  update(){
+    if(!this.started) return;
+    const t=this.ctx.currentTime;
+    const w=layerWinds().lowK, E=Director?Director.E:0;
+    this.windLP.frequency.setTargetAtTime(140+w*16+E*160,t,.6);
+    this.windGain.gain.setTargetAtTime(.06+Math.min(w/110,1)*.3+E*.08,t,.9);
+    const rain=Math.max(P.precip,Cells?Cells.rainMax:0);
+    this.rainGain.gain.setTargetAtTime(rain*.24,t,1.2);
+  },
+  thunder(distKm){
+    if(!this.started) return;
+    const ctx=this.ctx, at=ctx.currentTime+distKm/.34;    // sound lags the light
+    if(distKm>25) return;
+    const s=ctx.createBufferSource(); s.buffer=this.noiseBuf; s.loop=true;
+    const lp=ctx.createBiquadFilter(); lp.type='lowpass';
+    lp.frequency.setValueAtTime(60+Math.random()*60,at);
+    const g=ctx.createGain();
+    const amp=.9/(1+distKm*.18);
+    g.gain.setValueAtTime(0,at);
+    g.gain.linearRampToValueAtTime(amp,at+.06+Math.random()*.15);
+    g.gain.exponentialRampToValueAtTime(.001,at+2.2+Math.random()*2.5);
+    s.connect(lp); lp.connect(g); g.connect(this.master);
+    s.start(at); s.stop(at+5.5);
+  },
+  toggle(){
+    this.muted=!this.muted;
+    if(this.muted&&this.master) this.master.gain.setTargetAtTime(0,this.ctx.currentTime,.3);
+    else if(this.started) this.master.gain.setTargetAtTime(.6,this.ctx.currentTime,.3);
+    else this.ensure();
+  },
+};
+stage.addEventListener('pointerdown',()=>AudioEng.ensure(),{once:false});
+
+/* ======================================================
+   ROAMING — the Earth as random number generator. Every
+   ~10 minutes the piece drifts to another real place and
+   grows its actual sky; the parameters ease over, a slow
+   crossfade of climates. Offline, the conductor plays on.
+   ====================================================== */
+const ROAM_PLACES=[
+  ['Reykjavík',64.15,-21.94],['Tórshavn',62.01,-6.77],['Bergen',60.39,5.32],
+  ['Longyearbyen',78.22,15.63],['Murmansk',68.97,33.08],['Nuuk',64.18,-51.72],
+  ["St John's",47.56,-52.71],['Ushuaia',-54.8,-68.3],['Punta Arenas',-53.16,-70.91],
+  ['Hobart',-42.88,147.33],['Wellington',-41.29,174.78],['Mumbai',19.08,72.88],
+  ['Singapore',1.35,103.82],['Hong Kong',22.32,114.17],['Tokyo',35.68,139.69],
+  ['Petropavlovsk',53.02,158.65],['Anchorage',61.22,-149.9],['Honolulu',21.31,-157.86],
+  ['Lima',-12.05,-77.04],['Quito',-0.18,-78.47],['Bogotá',4.71,-74.07],
+  ['Manaus',-3.12,-60.02],['Recife',-8.05,-34.9],['Dakar',14.72,-17.47],
+  ['Accra',5.6,-0.19],['Cape Town',-33.92,18.42],['Nairobi',-1.29,36.82],
+  ['Addis Ababa',9.01,38.75],['Cairo',30.04,31.24],['Istanbul',41.01,28.98],
+  ['Athens',37.98,23.73],['Lisbon',38.72,-9.14],['Ponta Delgada',37.74,-25.67],
+  ['Dublin',53.35,-6.26],['Edinburgh',55.95,-3.19],['Irkutsk',52.29,104.28],
+  ['Ulaanbaatar',47.89,106.91],['Kathmandu',27.72,85.32],['Chengdu',30.57,104.07],
+  ['Darwin',-12.46,130.84],['Cairns',-16.92,145.77],['Suva',-18.14,178.44],
+  ['Apia',-13.83,-171.77],['Havana',23.11,-82.37],['New Orleans',29.95,-90.07],
+  ['Seattle',47.61,-122.33],['La Paz',-16.49,-68.12],['Sapporo',43.06,141.35],
+];
+const roam={ on:false, nextAt:0, hops:0 };
+async function roamHop(first){
+  const p=ROAM_PLACES[Math.floor(Math.random()*ROAM_PLACES.length)];
+  try{
+    if(!first&&!debugOpen){                       // blink at the border
+      canvas.style.opacity=.1;
+      setTimeout(()=>{canvas.style.opacity=1;},400);
+    }
+    await fetchWeather(p[1],p[2],p[0]);
+    roam.on=true; roam.hops++;
+    roam.nextAt=performance.now()+(8+Math.random()*5)*60*1000;
+    fieldnote(p[0]);
+  }catch(e){
+    roam.on=false;                                // offline: the conductor plays on
+  }
+}
+const noteEl=$('fieldnote');
+let noteT=null;
+function fieldnote(place){
+  const hh=String(Math.floor(P.hour)%24).padStart(2,'0');
+  const mm=String(Math.floor((P.hour%1)*60)).padStart(2,'0');
+  noteEl.textContent=`${place} — ${hh}:${mm}${lastWx?' — '+lastWx.desc:''}`;
+  noteEl.classList.add('show');
+  clearTimeout(noteT);
+  noteT=setTimeout(()=>noteEl.classList.remove('show'),12000);
+}
+
+/* ======================================================
    TAXONOMY OVERLAY — the machine names what it grows,
    in Luke Howard's Latin, with faint phosphor leader lines.
    ====================================================== */
@@ -2180,6 +2398,9 @@ window.__nub={
   get P(){return P;}, get dirT(){return dirT;}, set dirT(v){dirT=v;},
   get Director(){return Director;}, get Cine(){return Cine;}, get mode(){return mode;},
   get Cells(){return Cells;},
+  get Phenom(){return Phenom;},
+  get roam(){return roam;},
+  moonState:()=>moonState(),
   setMode,
   readings:()=>READINGS.slice(),
   ff(toT,step){ // fast-forward the director (and cells) to time toT
@@ -2238,7 +2459,8 @@ function sceneState(){
   const thickAmb=lerp(0.45,6.8,Math.pow(P.conv,1.35));
   const cellTop=Cells?Cells.maxStr*5.2:0;      // strong cells raise the roof
   const thick=Math.min(Math.max(thickAmb,cellTop),7.2);
-  return {sun,col,sunDir,w,hiF,toLow,toMid,toHigh,thick,thickAmb};
+  const moon=col.night>0.03?moonState():{dir:[0,-1,0],phase:0};
+  return {sun,col,sunDir,w,hiF,toLow,toMid,toHigh,thick,thickAmb,moon};
 }
 function atmoUniforms(pm,S){
   U.f(pm,'u_time',simT);
@@ -2270,6 +2492,10 @@ function atmoUniforms(pm,S){
   U.f2(pm,'u_cellCtr',...Cells.ctr);
   U.f(pm,'u_curlAmt',1.0+P.shear*2.2);
   U.f(pm,'u_cellRain',Cells.rainMax);
+  U.f(pm,'u_flash',Math.min(Phenom.flashAmp,1));
+  U.f2(pm,'u_flashPos',...Phenom.flashPos);
+  U.f3(pm,'u_moonDir',...S.moon.dir);
+  U.f(pm,'u_moonPhase',S.moon.phase);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_3D,texBase); U.i(pm,'u_texBase',0);
   gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_3D,texDtl); U.i(pm,'u_texDtl',1);
   gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D,texCell); U.i(pm,'u_cellTex',2);
@@ -2417,6 +2643,9 @@ function frame(tNow){
     if(telemetryOn) updateTelemetry();
   }
   TaxO.update(tNow);
+  Phenom.update(dtR);
+  AudioEng.update();
+  if(roam.on&&tNow>roam.nextAt) { roam.nextAt=tNow+9e5; roamHop(false); }
   if(!paused&&tNow-lastMeteoT>400){ lastMeteoT=tNow; captureProfile(); }
   draw();
 }
@@ -2477,6 +2706,7 @@ setTimeout(()=>{
   if(QS.has('debug')) setDebug(true);
   const qsPlace=QS.get('place');
   if(qsPlace) geocode(qsPlace).then(g=>fetchWeather(g.lat,g.lon,g.label)).catch(e=>wxError(String(e.message||e)));
+  else if(QS.get('roam')!=='0') roamHop(true);   // Earth as RNG, if it answers
   requestAnimationFrame(t=>{ lastT=t; requestAnimationFrame(frame); });
 },30);
 </script>
