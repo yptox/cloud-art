@@ -1377,11 +1377,13 @@ function updateTelemetry(){
   const mm=String(Math.floor((P.hour%1)*60)).padStart(2,'0');
   const place=(LOC.live&&LOC.label)?LOC.label:'somewhere synthetic';
   const shot=(Cine&&Cine.shot)?Cine.shot.name:'—';
+  const sector=Director?Director.sector:'—';
   telem.innerHTML=
     `<span class="tx-place">${esc(place)}</span><em>&middot;</em>${hh}:${mm}`+
     `<em>&middot;</em>sun ${sun.el.toFixed(0)}&deg;`+
     `<em>&middot;</em>wind ${Math.round(w.lowK)} km/h ${compass(w.lowD)}`+
-    `<em>&middot;</em>${taxonomy()}<em>&middot;</em>${esc(shot)}<em>&middot;</em>seed ${seed}`;
+    `<em>&middot;</em>${taxonomy()}<em>&middot;</em>${esc(sector)}`+
+    `<em>&middot;</em>${esc(shot)}<em>&middot;</em>seed ${seed}`;
 }
 let lastMove=performance.now();
 window.addEventListener('pointermove',()=>{
@@ -1423,15 +1425,20 @@ stage.addEventListener('wheel',e=>{
 },{passive:false});
 
 /* ======================================================
-   THE DIRECTOR — autonomous weather (Phase 1: meta-noise).
-   Layered seeded 1-D noise with distinct time constants; a
-   slow regime channel biases everything; convection follows
-   the sun's heating; rain is earned with hysteresis. Same
-   seed, same weather history. When a real station is live,
-   the director orbits gently around its reported sky.
+   THE DIRECTOR — the conductor (Phase 2: frontal dramaturgy).
+   A parade of low-pressure systems crosses a virtual map;
+   the station sits at the origin and weather happens TO it.
+   Every parameter derives from the geometry: the classic
+   warm-front succession on approach (cirrus → veil →
+   altostratus → nimbostratus rain), the cold front's squall
+   behind, showery clearing, then ridge calm. Wind comes from
+   the actual pressure gradient, so it veers and backs as
+   systems pass. Time itself dilates around the fronts.
+   Systems are a pure function of (seed, t): deterministic,
+   resumable, never repeating.
    ====================================================== */
 Director={
-  rseed:0, anchor:null,
+  rseed:0, anchor:null, sector:'ridge — fair', E:0,
   reseed(s){ this.rseed=(s*2654435761)>>>0; this.anchor=null; },
   h(k,i){
     let x=(Math.imul(i,668265263)^Math.imul(k,374761393)^this.rseed)>>>0;
@@ -1441,13 +1448,72 @@ Director={
   n1(k,t){ const i=Math.floor(t),f=t-i,u=f*f*(3-2*f); return this.h(k,i)*(1-u)+this.h(k,i+1)*u; },
   ch(k,t,per){ return this.n1(k,t/per); },
   layered(k,t){ return .55*this.ch(k,t,720)+.30*this.ch(k+51,t,150)+.15*this.ch(k+103,t,34); },
+
+  // the parade: low k is born every ~520 s and crosses the map
+  systems(t){
+    const per=520, out=[], k0=Math.floor(t/per);
+    for(let k=Math.max(0,k0-3);k<=k0+2;k++){
+      const born=k*per+(this.h(7,k)-.5)*per*.6;
+      const tEl=t-born;
+      if(tEl<0) continue;
+      const spd=(0.9+0.6*this.h(9,k))/150;         // map units per second
+      const x=-3.2+spd*tEl;
+      if(x>3.4) continue;
+      out.push({x, z:(this.h(11,k)-.5)*2.6,        // lateral offset: hits and grazes
+                I:.45+.55*this.h(8,k), R:1.05+.5*this.h(12,k)});
+    }
+    return out;
+  },
+  pressureAt(px,pz,sys){
+    let p=0;
+    for(const s of sys){
+      const dx=px-s.x, dz=pz-s.z;
+      p-=s.I*Math.exp(-(dx*dx+dz*dz)/(s.R*s.R*1.6));
+    }
+    return p;
+  },
+  // the Norwegian frontal succession, keyed on the approach coordinate u
+  // (u>0: system approaching; u<0: passed)
+  //         u    covLow covMid covHigh conv haze base precip shear
+  PROFILE:[[ 2.6, .05,  .02,  .15,   .30, .10, 1.3,  0,   .55],
+           [ 1.9, .08,  .08,  .55,   .25, .15, 1.2,  0,   .70],
+           [ 1.3, .18,  .45,  .75,   .18, .25, 1.0,  0,   .60],
+           [ 0.8, .45,  .70,  .50,   .14, .40, .70,  .08, .45],
+           [ 0.35,.92,  .60,  .30,   .10, .60, .32,  .55, .30],
+           [-0.15,.85,  .40,  .25,   .25, .55, .40,  .35, .35],
+           [-0.55,.72,  .45,  .40,   .92, .50, .55,  .80, .65],
+           [-1.1, .45,  .20,  .20,   .70, .20, .90,  .25, .50],
+           [-2.0, .25,  .08,  .12,   .55, .12, 1.15, .05, .35],
+           [-2.8, .10,  .03,  .10,   .40, .10, 1.25, 0,   .30]],
+  profile(u){
+    const K=this.PROFILE;
+    if(u>=K[0][0]) return K[0].slice(1);
+    if(u<=K[K.length-1][0]) return K[K.length-1].slice(1);
+    for(let i=0;i<K.length-1;i++){
+      if(u<=K[i][0]&&u>=K[i+1][0]){
+        const f=(K[i][0]-u)/(K[i][0]-K[i+1][0]);
+        return K[i].slice(1).map((v,j)=>v+(K[i+1][j+1]-v)*f);
+      }
+    }
+    return K[0].slice(1);
+  },
+  sectorName(u,att){
+    if(att<.22) return 'ridge — fair';
+    if(u>1.9)   return 'cirrus vanguard';
+    if(u>1.0)   return 'veil thickening';
+    if(u>0.35)  return 'warm front near';
+    if(u>-0.15) return 'warm sector rain';
+    if(u>-0.75) return 'cold front';
+    if(u>-1.6)  return 'post-frontal showers';
+    return 'clearing';
+  },
+
   update(t,dtR){
     const L=k=>this.layered(k,t);
-    const regime=.7*this.ch(1,t,900)+.3*this.ch(2,t,2600);     // the slow mood
-    const dl=Math.max(0,Math.sin((P.hour-6.5)/13*Math.PI));    // daytime heating
+    const dl=Math.max(0,Math.sin((P.hour-6.5)/13*Math.PI));   // daytime heating
     const heat=.3+.7*dl;
-    let tgt;
-    if(LOC.live&&this.anchor){                                 // orbit the real sky
+    let tgt, windTgtDeg=null, windTgtKmh=null;
+    if(LOC.live&&this.anchor){                                // orbit the real sky
       const a=this.anchor;
       tgt={ covLow:clamp(a.covLow+(L(10)-.5)*.22,0,.96),
             covMid:clamp(a.covMid+(L(20)-.5)*.25,0,.9),
@@ -1457,28 +1523,81 @@ Director={
             windKmh:Math.max(2,a.windKmh*(.7+.6*L(60))),
             shear:clamp(a.shear+(L(70)-.5)*.2,0,1),
             base:clamp(a.base+(L(80)-.5)*.4,.15,3),
-            dens:clamp(a.dens+(L(90)-.5)*.2,.5,1.6) };
-    }else{                                                     // fully synthetic sky
-      tgt={ covLow:clamp(Math.pow(regime,.8)*1.25*(.35+L(10)*.9),0,.96),
-            covMid:clamp((regime*.7+.1)*L(20)*1.2,0,.9),
-            covHigh:clamp(.12+L(30)*.8,0,.9),
-            conv:clamp((.28+regime*.72)*heat*(.5+L(40)*.9),0,1),
-            haze:clamp(.08+regime*.5*L(50),.05,.85),
-            windKmh:4+regime*44*(.35+L(60)*.9),
-            shear:clamp(.15+regime*.55+(L(70)-.5)*.4,0,1),
-            base:clamp(.45+1.4*L(80)*(1-regime*.35),.15,2.6),
-            dens:.85+.4*L(90) };
+            dens:clamp(a.dens+(L(90)-.5)*.2,.5,1.6),
+            precip:(P.covLow>.6&&P.conv>.6)?clamp((P.covLow-.45)*(P.conv-.4)*4.2,0,1):0 };
+      windTgtDeg=a.windDeg+(this.ch(3,t,420)-.5)*36;
+      this.sector='live station';
+      this.E=clamp(P.precip*.6+P.conv*.3,0,1);
+    }else{                                                    // the conductor
+      const sys=this.systems(t);
+      // wind = rotated pressure gradient + a little cross-isobar inflow
+      const e=.06;
+      const gx=(this.pressureAt(e,0,sys)-this.pressureAt(-e,0,sys))/(2*e);
+      const gz=(this.pressureAt(0,e,sys)-this.pressureAt(0,-e,sys))/(2*e);
+      const hemi=(LOC.lat>=0)?1:-1;
+      const vx=hemi*(-gz)-gx*.3, vz=hemi*gx-gz*.3;
+      const spd=Math.hypot(vx,vz);
+      // dominant system decides the story; all systems blend the sky
+      let best=null,bw=0,wsum=0;
+      const acc=[0,0,0,0,0,0,0,0];
+      for(const s of sys){
+        const u=-s.x/s.R;
+        const att=Math.exp(-(s.z*s.z)/(s.R*s.R*2.2))*s.I;
+        const win=Math.exp(-Math.pow(Math.abs(u)/2.6,4));
+        const w=att*win;
+        if(w>bw){bw=w;best={u,att};}
+        if(w>.01){
+          const p=this.profile(u);
+          wsum+=w;
+          for(let j=0;j<8;j++) acc[j]+=p[j]*w;
+        }
+      }
+      // ridge baseline: fair weather that breathes with the day
+      tgt={ covLow:clamp(.08+.3*dl*(.4+L(10)*.9),0,.5),
+            covMid:.04+L(20)*.12,
+            covHigh:.08+L(30)*.25,
+            conv:clamp(.3*heat+(L(40)-.5)*.15,.05,1),
+            haze:.08+L(50)*.12,
+            base:1.0+L(80)*.7,
+            dens:.9+.3*L(90),
+            shear:.2+(L(70)-.5)*.2,
+            precip:0 };
+      if(wsum>.01){
+        const m=Math.min(wsum*1.35,1), inv=1/wsum;
+        const F=acc.map(v=>v*inv);
+        tgt.covLow =tgt.covLow*(1-m)+F[0]*m;
+        tgt.covMid =tgt.covMid*(1-m)+F[1]*m;
+        tgt.covHigh=tgt.covHigh*(1-m)+F[2]*m;
+        tgt.conv   =tgt.conv*(1-m)+F[3]*m*(0.65+0.35*heat);
+        tgt.haze   =tgt.haze*(1-m)+F[4]*m;
+        tgt.base   =tgt.base*(1-m)+F[5]*m;
+        tgt.precip =F[6]*m;
+        tgt.shear  =tgt.shear*(1-m)+F[7]*m;
+      }
+      // micro-texture so no two passages feel identical
+      tgt.covLow=clamp(tgt.covLow*(.85+L(15)*.3),0,.96);
+      tgt.covMid=clamp(tgt.covMid*(.8+L(25)*.4),0,.9);
+      tgt.covHigh=clamp(tgt.covHigh*(.8+L(35)*.4),0,.9);
+      this.sector=best?this.sectorName(best.u,best.att):'ridge — fair';
+      // wind targets from the map
+      let wk=4+spd*95;
+      if(best&&best.u<-.3&&best.u>-1.3) wk*=1.25;             // post-frontal gusts
+      windTgtKmh=clamp(wk,3,70);
+      if(spd>1e-4) windTgtDeg=(Math.atan2(-vx,-vz)/rad+360)%360;
+      // event intensity → time dilation: savor the fronts, skip the lulls
+      const g1=best?Math.exp(-Math.pow((best.u-.35)/.5,2))
+                   +1.15*Math.exp(-Math.pow((best.u+.55)/.45,2)):0;
+      this.E=clamp((best?best.att:0)*g1+P.precip*.4,0,1);
     }
-    const stormy=P.covLow>.6&&P.conv>.6;
-    tgt.precip=stormy?clamp((P.covLow-.45)*(P.conv-.4)*4.2,0,1):0;
+    if(windTgtKmh!=null) tgt.windKmh=windTgtKmh;
     const TAU={covLow:26,covMid:30,covHigh:40,conv:38,haze:35,windKmh:30,shear:45,base:70,dens:60,precip:22};
-    for(const k in TAU) P[k]+=(tgt[k]-P[k])*(1-Math.exp(-dtR/TAU[k]));
-    // wind direction wanders continuously (never snaps across the wrap)
-    const wd=(LOC.live&&this.anchor)
-      ? this.anchor.windDeg+(this.ch(3,t,420)-.5)*36
-      : this.ch(4,t,1500)*560+(this.ch(3,t,300)-.5)*50;
-    const dd=((wd-P.windDeg+540)%360)-180;
-    P.windDeg=(P.windDeg+dd*(1-Math.exp(-dtR/60))+360)%360;
+    for(const k in TAU) if(tgt[k]!=null) P[k]+=(tgt[k]-P[k])*(1-Math.exp(-dtR/TAU[k]));
+    if(windTgtDeg!=null){
+      const dd=((windTgtDeg-P.windDeg+540)%360)-180;
+      P.windDeg=(P.windDeg+dd*(1-Math.exp(-dtR/60))+360)%360;
+    }
+    const tempoTgt=58*(1.35-.85*this.E);
+    P.tempo+=(tempoTgt-P.tempo)*(1-Math.exp(-dtR/25));
   }
 };
 
@@ -1597,6 +1716,16 @@ Cine={
 };
 Director.reseed(seed);
 Cine.reseed(seed);
+
+// test/inspection hook (not part of the public face)
+window.__nub={
+  get P(){return P;}, get dirT(){return dirT;}, set dirT(v){dirT=v;},
+  get Director(){return Director;}, get Cine(){return Cine;}, get mode(){return mode;},
+  ff(toT,step){ // fast-forward the director to time toT
+    step=step||4;
+    while(dirT<toT){ dirT+=step; Director.update(dirT,step); P.hour=(P.hour+step*P.tempo/3600)%24; }
+  },
+};
 
 /* ======================================================
    RENDER LOOP
