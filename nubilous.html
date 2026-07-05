@@ -97,6 +97,7 @@
     border:1px solid var(--line);
     box-shadow:0 0 0 1px #000, 0 0 52px rgba(0,255,0,.08), inset 0 0 40px rgba(0,0,0,.55);
     background:#000;position:relative;cursor:grab;
+    touch-action:none;
   }
   .stage.dragging{cursor:grabbing}
   .stage canvas{width:100% !important;height:100% !important;display:block}
@@ -1749,7 +1750,7 @@ stage.addEventListener('pointerdown',e=>{
   if(Cine) Cine.holdUntil=performance.now()/1000+45;   // the director waits for you
   dragging=true; lastX=e.clientX; lastY=e.clientY;
   stage.classList.add('dragging');
-  stage.setPointerCapture(e.pointerId);
+  try{ stage.setPointerCapture(e.pointerId); }catch(_){}
 });
 stage.addEventListener('pointermove',e=>{
   if(!dragging) return;
@@ -1763,9 +1764,24 @@ stage.addEventListener('pointermove',e=>{
     camChart.pitch=clamp(camChart.pitch+dy*0.004,0.72,1.40);
   }
 });
-const endDrag=()=>{ dragging=false; stage.classList.remove('dragging'); };
+// on touch screens there is no 'i' key: a quick double-tap toggles telemetry
+let lastTapT=0, tapStart=null;
+stage.addEventListener('pointerdown',e=>{ tapStart=[e.clientX,e.clientY,performance.now()]; });
+const endDrag=e=>{
+  dragging=false; stage.classList.remove('dragging');
+  if(tapStart&&e){
+    const moved=Math.hypot(e.clientX-tapStart[0],e.clientY-tapStart[1]);
+    const held=performance.now()-tapStart[2];
+    if(moved<12&&held<350){
+      const now=performance.now();
+      if(now-lastTapT<500) setTelemetry(!telemetryOn);
+      lastTapT=now;
+    }
+  }
+  tapStart=null;
+};
 stage.addEventListener('pointerup',endDrag);
-stage.addEventListener('pointercancel',endDrag);
+stage.addEventListener('pointercancel',()=>endDrag());
 stage.addEventListener('wheel',e=>{
   e.preventDefault();
   if(Cine) Cine.holdUntil=performance.now()/1000+45;
