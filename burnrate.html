@@ -26,6 +26,7 @@
     -webkit-user-select:none;user-select:none;
     -webkit-tap-highlight-color:transparent;
   }
+  body.kiosk{cursor:none}
   canvas#feed{position:fixed;inset:0;width:100%;height:100%;display:block}
 
   /* ---------- wordmark ---------- */
@@ -53,6 +54,8 @@
   #ledger .k{color:var(--paper-dim);width:8.5ch}
   #ledger .coords{margin-top:6px;color:var(--paper-dim);font-size:10px;letter-spacing:.04em}
   #ledger .alltime{color:var(--paper-dim);font-size:10px;margin-top:2px}
+  #ledger .global{color:var(--paper-dim);font-size:10px;margin-top:2px;display:none}
+  #ledger .global.on{display:block}
   #ledger .rule{border:0;border-top:1px dashed rgba(232,228,220,.28);margin:6px 0 4px;width:26ch}
 
   /* ---------- about / receipt panel ---------- */
@@ -103,6 +106,7 @@
   <hr class="rule">
   <div class="coords" id="l-coords">&nbsp;</div>
   <div class="alltime" id="l-all">&nbsp;</div>
+  <div class="global" id="l-glob">&nbsp;</div>
 </div>
 
 <div id="about" role="dialog" aria-label="about BURNRATE">
@@ -128,55 +132,45 @@
     figures. estimation is the point: these costs are real,
     and deliberately obscured.</p>
     <hr>
-    <p style="color:var(--paper-dim)">phase-1 prototype: the imagery in this
-    feed is synthesized in-shader, live, by your own GPU —
-    the watts on this page are drawn from the device in your hand.</p>
+    <p style="color:var(--paper-dim)" id="mode-note">the feed serves a
+    pre-generated batch with per-image metadata; where the batch is
+    unreachable, the imagery is synthesized in-shader, live, by your
+    own GPU — and the watts are drawn from the device in your hand.</p>
     <span class="close">CLOSE</span>
   </div>
 </div>
 
-<div id="nogl">BURNRATE requires WebGL&nbsp;2.<br>chrome 56+ · firefox 51+ · safari 15+</div>
+<div id="nogl">BURNRATE requires WebGL.<br>chrome 56+ · firefox 51+ · safari 15+</div>
 
+<script src="vendor/three.min.js"></script>
 <script>
 'use strict';
 /* ==============================================================
-   BURNRATE — phase 1 prototype
+   BURNRATE — three.js + custom GLSL
    scroll is the ignition source. burning is monotonic.
+
+   modes:
+     default        infinite feed (batch/manifest.json if reachable,
+                    otherwise live in-shader synthesis)
+     ?kiosk=1       exhibition build — hides cursor, attract-burns
+                    when idle, about panel disabled
+     #gen           batch-pipeline harness — exposes
+                    window.__burnrateGen for scripts/generate-batch.mjs
    ============================================================== */
 
-// ---------------------------------------------------------- GL setup
-const canvas = document.getElementById('feed');
-const gl = canvas.getContext('webgl2', {antialias:false, alpha:false,
-  powerPreference:'high-performance'});
-if(!gl){
-  document.getElementById('nogl').style.display = 'flex';
-  throw new Error('WebGL2 unavailable');
-}
+const params  = new URLSearchParams(location.search);
+const KIOSK   = params.get('kiosk') === '1';
+const GENMODE = location.hash.startsWith('#gen');
+if(KIOSK) document.body.classList.add('kiosk');
 
-function compile(type, src){
-  const s = gl.createShader(type);
-  gl.shaderSource(s, src); gl.compileShader(s);
-  if(!gl.getShaderParameter(s, gl.COMPILE_STATUS))
-    throw new Error(gl.getShaderInfoLog(s) + '\n---\n' + src);
-  return s;
-}
-function program(vs, fs){
-  const p = gl.createProgram();
-  gl.attachShader(p, compile(gl.VERTEX_SHADER, vs));
-  gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
-  gl.linkProgram(p);
-  if(!gl.getProgramParameter(p, gl.LINK_STATUS))
-    throw new Error(gl.getProgramInfoLog(p));
-  return p;
-}
-
-const VS = `#version 300 es
+// ---------------------------------------------------------- GLSL
+const VERT = `
+varying vec2 vUv;
 void main(){
-  vec2 p = vec2((gl_VertexID<<1 & 2), (gl_VertexID & 2));
-  gl_Position = vec4(p*2.0-1.0, 0.0, 1.0);
+  vUv = uv;
+  gl_Position = vec4(position.xy, 0.0, 1.0);
 }`;
 
-// shared noise library
 const NOISE = `
 float hash21(vec2 p){
   p = fract(p*vec2(123.34, 456.21));
@@ -204,21 +198,20 @@ float ridge(vec2 p){
   return s;
 }`;
 
-// ---------------------------------------------------------- image synthesis
-// renders one seeded "synthetic photograph" into a texture. runs once per image.
-const SYNTH_FS = `#version 300 es
+// ---- image synthesis: one seeded "photograph" per render. runs once per image.
+const SYNTH_FRAG = `
 precision highp float;
+varying vec2 vUv;
 uniform vec2  uRes;
 uniform float uSeed;
 uniform int   uKind;
 uniform vec3  uPalA, uPalB, uPalC, uPalD;
 uniform float uFreq, uWarp;
-out vec4 fragColor;
 ${NOISE}
 vec3 pal(float x){ return clamp(uPalA + uPalB*cos(6.28318*(uPalC*x + uPalD)), 0.0, 1.4); }
 
 void main(){
-  vec2 uv = gl_FragCoord.xy / uRes;
+  vec2 uv = vUv;
   float aspect = uRes.x / uRes.y;
   vec2 q = (uv - 0.5) * vec2(aspect, 1.0);
   vec2 s = vec2(uSeed*17.13, uSeed*9.71);
@@ -286,30 +279,35 @@ void main(){
     col += pal(0.95) * pow(v, 9.0) * 0.32;
   }
 
-  // photographic finish: tone curve, vignette, grain
+  // photographic finish: tone curve, saturation, vignette, grain
   col = clamp(col, 0.0, 1.0);
-  col = mix(col, col*col*(3.0 - 2.0*col), 0.5);            // gentle S-curve
+  col = mix(col, col*col*(3.0 - 2.0*col), 0.5);
   float lums = dot(col, vec3(0.299, 0.587, 0.114));
-  col = clamp(mix(vec3(lums), col, 1.22), 0.0, 1.0);       // saturation lift
+  col = clamp(mix(vec3(lums), col, 1.22), 0.0, 1.0);
   float vig = smoothstep(1.5, 0.45, length(uv - 0.5)*1.7);
   col *= mix(0.72, 1.0, vig);
   col += (hash21(uv*uRes) - 0.5) * 0.025;
-  fragColor = vec4(col, 1.0);
+  gl_FragColor = vec4(col, 1.0);
 }`;
 
-// ---------------------------------------------------------- feed composite
-// outgoing image burns away in place, revealing the pristine incoming image.
-const FEED_FS = `#version 300 es
+// ---- feed composite: the outgoing image is eroded away in place — the only heavy pass.
+// burn = signed-distance edge erosion driven by a noise-advected mask, with emissive
+// preheat cracks, a blackbody rim, a crumbling char band, ember emission, and a
+// heat-haze refraction of the pristine image revealed beneath.
+const FEED_FRAG = `
 precision highp float;
+varying vec2 vUv;
 uniform sampler2D uTexOut;   // outgoing (burning)
 uniform sampler2D uTexIn;    // incoming (pristine, behind)
+uniform vec4  uFitOut, uFitIn;   // cover-crop: sampleUV = fit.xy + uv*fit.zw
 uniform vec2  uRes;
 uniform float uTime;
 uniform float uBurn;         // 0..1 monotonic
 uniform float uSeed;         // per-outgoing-image
 uniform float uHeat;         // cost-scaled burn intensity
-out vec4 fragColor;
 ${NOISE}
+
+vec2 fitUV(vec2 uv, vec4 f){ return f.xy + uv*f.zw; }
 
 vec3 emberRamp(float x){
   vec3 c = mix(vec3(0.04, 0.0, 0.0), vec3(0.52, 0.06, 0.01), smoothstep(0.0, 0.35, x));
@@ -339,18 +337,22 @@ vec3 embers(vec2 q, float t, float zone, float seed){
 }
 
 void main(){
-  vec2 uv = gl_FragCoord.xy / uRes;
+  vec2 uv = vUv;
   float aspect = uRes.x / uRes.y;
   vec2 q = vec2(uv.x*aspect, uv.y);
   float t = uTime;
   float b = uBurn;
-  vec2 sd = vec2(uSeed*7.31, uSeed*3.77);
+  vec2 sd2 = vec2(uSeed*7.31, uSeed*3.77);
 
-  // ---- burn field: front rises from the bottom edge, contour advected by noise
-  float n = fbm(q*3.1 + sd + vec2(0.0, -t*0.06));
-  float field = uv.y + (n - 0.5)*0.5;
-  float front = b*1.95 - 0.18;
-  float d = front - field;                 // <0 intact · >0 consumed
+  // ---- signed-distance edge erosion --------------------------------------
+  // rect SDF to the image border, biased so the bottom edge (the thumb's
+  // edge) leads, eroded by a noise-advected mask. sdist > 0 intact.
+  float edge  = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
+  float mask  = fbm(q*3.1 + sd2 + vec2(0.0, -t*0.06));
+  float field = edge + uv.y*0.28 + (mask - 0.5)*0.5;
+  float front = b*1.55 - 0.16;
+  float sdist = field - front;
+  float d = -sdist;                        // <0 intact · >0 consumed
   float flick = 0.72 + 0.28*vnoise(q*9.0 + vec2(0.0, t*3.4));
 
   // ---- incoming, sampled through heat-haze refraction
@@ -360,7 +362,7 @@ void main(){
   vec2 hazeUV = uv + (hb - 0.5) * 0.05 * hazeMask;
   float sc = 1.0 + 0.045*(1.0 - smoothstep(0.0, 1.0, b));
   vec2 inUV = (hazeUV - 0.5)/sc + 0.5;
-  vec3 colIn = texture(uTexIn, inUV).rgb;
+  vec3 colIn = texture2D(uTexIn, fitUV(inUV, uFitIn)).rgb;
   colIn += emberRamp(0.62) * 0.13 * hazeMask * flick;   // warm spill from the fire
 
   // ---- smoke drifting over the reveal
@@ -369,8 +371,8 @@ void main(){
   colIn = mix(colIn, vec3(0.055, 0.05, 0.045) + smoke*0.10, smokeMask*smoke);
 
   // ---- outgoing: preheat cracks -> char band -> ember rim -> crumble
-  vec3 colOut = texture(uTexOut, uv).rgb;
-  float crack = ridge(q*7.0 + sd*3.0);
+  vec3 colOut = texture2D(uTexOut, fitUV(uv, uFitOut)).rgb;
+  float crack = ridge(q*7.0 + sd2*3.0);
   float crackLine = smoothstep(0.13, 0.02, crack);
 
   float pre = smoothstep(-0.17, 0.0, d) * (1.0 - step(0.0, d));
@@ -385,7 +387,7 @@ void main(){
 
   colOut += emberRamp(1.0) * exp(-abs(d)*44.0) * (1.05 + 0.5*uHeat) * flick;  // white-hot rim
 
-  float crumb = vnoise(q*24.0 + sd*9.0);
+  float crumb = vnoise(q*24.0 + sd2*9.0);
   float alphaOut = 1.0 - smoothstep(charW*0.72, charW, d + crumb*0.05);
 
   vec3 col = mix(colIn, colOut, alphaOut);
@@ -398,32 +400,8 @@ void main(){
   float vig = smoothstep(1.45, 0.5, length(uv - 0.5)*1.65);
   col *= mix(0.8, 1.0, vig);
   col += (hash21(uv*uRes + vec2(t*61.7, t*12.3)) - 0.5) * 0.032;
-  fragColor = vec4(col, 1.0);
+  gl_FragColor = vec4(col, 1.0);
 }`;
-
-const synthProg = program(VS, SYNTH_FS);
-const feedProg  = program(VS, FEED_FS);
-const vao = gl.createVertexArray();
-
-const U = {};                                     // uniform locations
-for(const nm of ['uRes','uSeed','uKind','uPalA','uPalB','uPalC','uPalD','uFreq','uWarp'])
-  U['s_'+nm] = gl.getUniformLocation(synthProg, nm);
-for(const nm of ['uTexOut','uTexIn','uRes','uTime','uBurn','uSeed','uHeat'])
-  U['f_'+nm] = gl.getUniformLocation(feedProg, nm);
-
-// ---------------------------------------------------------- texture pool
-const pool = [];   // 3 rotating {tex, fbo, w, h}
-function makeSlot(){
-  const tex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  const fbo = gl.createFramebuffer();
-  return {tex, fbo, w:0, h:0};
-}
-for(let i=0;i<3;i++) pool.push(makeSlot());
 
 // ---------------------------------------------------------- deterministic feed
 function mulberry32(a){
@@ -447,15 +425,18 @@ const PALETTES = [
   [[0.46,0.48,0.46],[0.36,0.36,0.34],[1.0,1.0,1.0],[0.28,0.36,0.44]],  // pearl
 ];
 
+// model classes: inference wall-seconds and Wh anchored to published
+// per-query measurements (Luccioni et al. 2023), spread by class
 const MODELS = [
-  {id:'diffusion-xl/1024',   wh:2.9, gpu:6.2},
-  {id:'flux-class/1408',     wh:4.6, gpu:11.0},
-  {id:'latent-v3/1536',      wh:3.4, gpu:7.8},
-  {id:'upscale-x4/2048',     wh:6.1, gpu:14.5},
-  {id:'turbo-distill/512',   wh:0.8, gpu:1.6},
-  {id:'consistency-hd/1792', wh:3.9, gpu:8.9},
+  {id:'turbo-distill/512',   infer:0.9, dev:1, wh:0.8},
+  {id:'diffusion-xl/1024',   infer:3.1, dev:2, wh:2.9},
+  {id:'latent-v3/1536',      infer:4.0, dev:2, wh:3.4},
+  {id:'consistency-hd/1792', infer:4.6, dev:2, wh:3.9},
+  {id:'flux-class/1408',     infer:5.5, dev:2, wh:4.6},
+  {id:'upscale-x4/2048',     infer:7.2, dev:2, wh:6.1},
 ];
 
+// published hyperscale data-center sites; wue = L/kWh water intensity
 const SITES = [
   {lat:'45.5946 N', lon:'121.1787 W', place:'the dalles, oregon',      wue:2.4},
   {lat:'41.2619 N', lon:'95.8608 W',  place:'council bluffs, iowa',    wue:3.1},
@@ -471,44 +452,163 @@ function imageMeta(i){
   const r = mulberry32(0x1B75 ^ Math.imul(i + 1, 2654435761));
   const model = MODELS[Math.floor(r()*MODELS.length)];
   const site  = SITES[Math.floor(r()*SITES.length)];
-  const wh   = model.wh  * (0.75 + r()*0.6);
-  const gpu  = model.gpu * (0.80 + r()*0.5);
-  const ml   = wh * site.wue * (0.85 + r()*0.3);   // Wh × L/kWh ≡ mL
+  const wh    = model.wh    * (0.75 + r()*0.6);
+  const infer = model.infer * (0.80 + r()*0.5);
+  const gpu   = infer * model.dev;
+  const ml    = wh * site.wue * (0.85 + r()*0.3);   // Wh × L/kWh ≡ mL
   return {
+    seedIndex: i,
     seed:  r()*100 + 1,
-    kind:  i === 0 ? 0 : Math.floor(r()*6),        // cold open: always the dusk orb
+    kind:  i === 0 ? 0 : Math.floor(r()*6),         // cold open: always the dusk orb
     pal:   i === 0 ? PALETTES[0] : PALETTES[Math.floor(r()*PALETTES.length)],
     freq:  1.3 + r()*1.8,
     warp:  0.45 + r()*0.65,
-    model, site, wh, gpu, ml,
+    model: model.id, site, wh, gpu, ml, infer,
     heat:  Math.min(1.6, 0.65 + wh*0.16),
     duration: Math.min(4.6, 1.9 + wh*0.38),
   };
 }
 
-// ---------------------------------------------------------- synthesis pass
-function synthesize(slot, meta, w, h){
-  gl.bindFramebuffer(gl.FRAMEBUFFER, slot.fbo);
-  if(slot.w !== w || slot.h !== h){
-    gl.bindTexture(gl.TEXTURE_2D, slot.tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    slot.w = w; slot.h = h;
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, slot.tex, 0);
+// ---------------------------------------------------------- three.js setup
+const canvas = document.getElementById('feed');
+let renderer;
+try{
+  renderer = new THREE.WebGLRenderer({canvas, antialias:false, alpha:false,
+    powerPreference:'high-performance', preserveDrawingBuffer:GENMODE});
+}catch(e){
+  document.getElementById('nogl').style.display = 'flex';
+  throw e;
+}
+renderer.setPixelRatio(1);   // pixel budget is managed manually below
+
+const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+const quad = new THREE.PlaneGeometry(2, 2);
+
+const synthMat = new THREE.ShaderMaterial({
+  vertexShader: VERT, fragmentShader: SYNTH_FRAG, depthTest:false, depthWrite:false,
+  uniforms:{
+    uRes:{value:new THREE.Vector2(1,1)}, uSeed:{value:1}, uKind:{value:0},
+    uPalA:{value:new THREE.Vector3()}, uPalB:{value:new THREE.Vector3()},
+    uPalC:{value:new THREE.Vector3()}, uPalD:{value:new THREE.Vector3()},
+    uFreq:{value:2}, uWarp:{value:0.7},
+  },
+});
+const synthScene = new THREE.Scene();
+synthScene.add(new THREE.Mesh(quad, synthMat));
+
+const feedMat = new THREE.ShaderMaterial({
+  vertexShader: VERT, fragmentShader: FEED_FRAG, depthTest:false, depthWrite:false,
+  uniforms:{
+    uTexOut:{value:null}, uTexIn:{value:null},
+    uFitOut:{value:new THREE.Vector4(0,0,1,1)}, uFitIn:{value:new THREE.Vector4(0,0,1,1)},
+    uRes:{value:new THREE.Vector2(1,1)},
+    uTime:{value:0}, uBurn:{value:0}, uSeed:{value:1}, uHeat:{value:1},
+  },
+});
+const feedScene = new THREE.Scene();
+feedScene.add(new THREE.Mesh(quad, feedMat));
+
+function setSynthUniforms(meta, w, h){
+  const u = synthMat.uniforms;
+  u.uRes.value.set(w, h);
+  u.uSeed.value = meta.seed;
+  u.uKind.value = meta.kind;
+  u.uPalA.value.fromArray(meta.pal[0]);
+  u.uPalB.value.fromArray(meta.pal[1]);
+  u.uPalC.value.fromArray(meta.pal[2]);
+  u.uPalD.value.fromArray(meta.pal[3]);
+  u.uFreq.value = meta.freq;
+  u.uWarp.value = meta.warp;
+}
+
+// ---------------------------------------------------------- gen mode (batch pipeline harness)
+if(GENMODE){
+  window.__burnrateGen = {
+    meta(i){
+      const m = imageMeta(i);
+      return {seedIndex:i, model:m.model, infer:+m.infer.toFixed(2),
+              wh:+m.wh.toFixed(3), ml:+m.ml.toFixed(1), gpu:+m.gpu.toFixed(2),
+              site:m.site, heat:+m.heat.toFixed(3), duration:+m.duration.toFixed(2)};
+    },
+    render(i, w, h, quality){
+      renderer.setSize(w, h, false);
+      setSynthUniforms(imageMeta(i), w, h);
+      renderer.setRenderTarget(null);
+      renderer.render(synthScene, cam);
+      return renderer.domElement.toDataURL('image/jpeg', quality || 0.72);
+    },
+  };
+  document.getElementById('ledger').style.display = 'none';
+}
+
+// ---------------------------------------------------------- textures: batch or live synthesis
+let batch = null;            // manifest.images when the pre-generated batch is reachable
+const rtPool = [null, null, null];      // live-synth render targets, rotating
+const batchTex = new Map();             // seedIndex -> THREE.Texture (batch mode)
+let W = 0, H = 0;
+
+function slotRT(i){
+  const k = ((i % 3) + 3) % 3;
+  if(!rtPool[k] || rtPool[k].width !== W || rtPool[k].height !== H){
+    if(rtPool[k]) rtPool[k].dispose();
+    rtPool[k] = new THREE.WebGLRenderTarget(W, H, {
+      minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter,
+      depthBuffer:false, stencilBuffer:false,
+    });
   }
-  gl.viewport(0, 0, w, h);
-  gl.useProgram(synthProg);
-  gl.uniform2f(U.s_uRes, w, h);
-  gl.uniform1f(U.s_uSeed, meta.seed);
-  gl.uniform1i(U.s_uKind, meta.kind);
-  gl.uniform3fv(U.s_uPalA, meta.pal[0]);
-  gl.uniform3fv(U.s_uPalB, meta.pal[1]);
-  gl.uniform3fv(U.s_uPalC, meta.pal[2]);
-  gl.uniform3fv(U.s_uPalD, meta.pal[3]);
-  gl.uniform1f(U.s_uFreq, meta.freq);
-  gl.uniform1f(U.s_uWarp, meta.warp);
-  gl.bindVertexArray(vao);
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  return rtPool[k];
+}
+
+function synthesizeInto(i){
+  const rt = slotRT(i);
+  setSynthUniforms(imageMeta(i), W, H);
+  renderer.setRenderTarget(rt);
+  renderer.render(synthScene, cam);
+  renderer.setRenderTarget(null);
+  return rt.texture;
+}
+
+const texLoader = new THREE.TextureLoader();
+function loadBatchTex(i){
+  const n = i % batch.length;
+  if(batchTex.has(n)) return;
+  batchTex.set(n, null);      // in flight
+  texLoader.load('batch/' + batch[n].file, tex => {
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.generateMipmaps = false;
+    batchTex.set(n, tex);
+  }, undefined, () => batchTex.delete(n));
+}
+function batchReady(i){ return !!batchTex.get(i % batch.length); }
+function textureFor(i){
+  if(batch){
+    const tex = batchTex.get(i % batch.length);
+    return tex || null;
+  }
+  return slotRT(i).texture;
+}
+
+// cover-crop a texture of aspect ta onto the screen
+function coverFit(vec4, texW, texH){
+  const sa = W / H, ta = texW / texH;
+  if(ta > sa){ const w = sa/ta; vec4.set((1-w)/2, 0, w, 1); }
+  else       { const h = ta/sa; vec4.set(0, (1-h)/2, 1, h); }
+}
+function fitFor(i, target){
+  if(batch){
+    const tex = batchTex.get(i % batch.length);
+    if(tex && tex.image) return coverFit(target, tex.image.width, tex.image.height);
+  }
+  target.set(0, 0, 1, 1);
+}
+
+function metaFor(i){
+  if(batch){
+    const m = batch[i % batch.length];
+    return {seed: (m.seedIndex % 97) + 1.37, ...m};
+  }
+  return imageMeta(i);
 }
 
 // ---------------------------------------------------------- state
@@ -516,32 +616,36 @@ const IGNITE = 0.16;         // past this, the fire self-sustains — no way bac
 let idx = 0;                 // index of the outgoing (visible, burnable) image
 let burn = 0;                // 0..1, monotonic
 let ignited = false;
-let curMeta = imageMeta(0);
+let curMeta = null;
 let inputAcc = 0;            // scroll energy accumulated this frame
-let renderScale = Math.min(window.devicePixelRatio || 1, 2);
-let W = 0, H = 0;
+let lastInputAt = performance.now();
 
-const ledger = {wh:0, ml:0, gpu:0, img:0};        // session, animated display
+const IS_COARSE = matchMedia('(pointer:coarse)').matches;
+const DPR_CAP   = IS_COARSE ? 1.5 : 2;          // mobile perf: cap the pixel budget
+let renderScale = Math.min(window.devicePixelRatio || 1, DPR_CAP);
+const SCALE_MAX = renderScale;
+
+const ledger = {wh:0, ml:0, gpu:0, img:0};      // session, animated display
 const shown  = {wh:0, ml:0, gpu:0, img:0};
 let lifetime = {wh:0, ml:0, gpu:0, img:0};
 try{ const s = localStorage.getItem('burnrate-ledger'); if(s) lifetime = JSON.parse(s); }catch(e){}
 
-function slotFor(i){ return pool[((i % 3) + 3) % 3]; }
-
 function resize(){
-  W = Math.round(innerWidth  * renderScale);
-  H = Math.round(innerHeight * renderScale);
-  canvas.width = W; canvas.height = H;
-  synthesize(slotFor(idx),     curMeta,          W, H);
-  synthesize(slotFor(idx + 1), imageMeta(idx+1), W, H);
+  W = Math.max(2, Math.round(innerWidth  * renderScale));
+  H = Math.max(2, Math.round(innerHeight * renderScale));
+  renderer.setSize(W, H, false);
+  canvas.style.width = '100%'; canvas.style.height = '100%';
+  if(!batch){                     // live mode: re-synthesize at the new resolution
+    synthesizeInto(idx);
+    synthesizeInto(idx + 1);
+  }
 }
 window.addEventListener('resize', resize);
-resize();
 
 // ---------------------------------------------------------- ledger DOM
 const $ = id => document.getElementById(id);
 const el = {wh:$('l-wh'), ml:$('l-ml'), gpu:$('l-gpu'), img:$('l-img'),
-            coords:$('l-coords'), all:$('l-all'),
+            coords:$('l-coords'), all:$('l-all'), glob:$('l-glob'),
             ledger:$('ledger'), mark:$('wordmark'), about:$('about')};
 
 function fmtWater(ml){
@@ -551,6 +655,37 @@ function receiptTitle(){
   if(ledger.img === 0) return 'BURNRATE';
   return 'BURNRATE ⌘ ' + ledger.wh.toFixed(1) + ' Wh · '
        + fmtWater(ledger.ml) + ' · ' + ledger.img + ' img';
+}
+
+// ---------------------------------------------------------- global counter (optional backend)
+// a lightweight endpoint (server/burnrate-counter.mjs) accumulates every
+// viewer's burn into one planetary total. silently absent when unreachable.
+const API = params.get('api') || window.BURNRATE_ENDPOINT
+         || (location.protocol.startsWith('http') ? '/api/burnrate' : null);
+let globalTotal = null;
+if(API){
+  fetch(API).then(r => r.ok ? r.json() : null).then(j => {
+    if(j && typeof j.wh === 'number'){ globalTotal = j; renderGlobal(); }
+  }).catch(() => {});
+}
+function renderGlobal(){
+  if(!globalTotal) return;
+  el.glob.textContent = 'everyone Σ ' + globalTotal.wh.toFixed(1) + ' Wh · '
+                      + fmtWater(globalTotal.ml) + ' · ' + globalTotal.img + ' img';
+  el.glob.classList.add('on');
+}
+function postGlobal(meta){
+  if(!API) return;
+  if(globalTotal){
+    globalTotal.wh += meta.wh; globalTotal.ml += meta.ml;
+    globalTotal.gpu += meta.gpu; globalTotal.img += 1;
+    renderGlobal();
+  }
+  const body = JSON.stringify({wh:meta.wh, ml:meta.ml, gpu:meta.gpu, img:1});
+  try{
+    fetch(API, {method:'POST', body, keepalive:true,
+      headers:{'content-type':'application/json'}}).catch(() => {});
+  }catch(e){}
 }
 
 function onIgnition(meta){
@@ -566,6 +701,7 @@ function onIgnition(meta){
   el.all.textContent = 'all visits Σ ' + lifetime.wh.toFixed(1) + ' Wh · '
                      + fmtWater(lifetime.ml) + ' · ' + lifetime.img + ' img';
   document.title = receiptTitle();
+  postGlobal(meta);
   if(ledger.img >= 10){
     el.ledger.classList.add('on');
     el.mark.classList.add('on');
@@ -586,7 +722,7 @@ function updateLedgerDisplay(dt){
 
 // ---------------------------------------------------------- input: the thumb
 function addInput(px){
-  if(px > 0) inputAcc += px;      // fire does not reverse
+  if(px > 0){ inputAcc += px; lastInputAt = performance.now(); }
 }
 window.addEventListener('wheel', e => {
   e.preventDefault();
@@ -608,10 +744,10 @@ window.addEventListener('keydown', e => {
   if(e.key === ' ' || e.key === 'ArrowDown' || e.key === 'PageDown'){
     e.preventDefault(); addInput(340);
   }
-  if(e.key === '?') el.about.classList.toggle('open');
+  if(e.key === '?' && !KIOSK) el.about.classList.toggle('open');
   if(e.key === 'Escape') el.about.classList.remove('open');
 });
-el.mark.addEventListener('click', () => el.about.classList.add('open'));
+el.mark.addEventListener('click', () => { if(!KIOSK) el.about.classList.add('open'); });
 el.about.addEventListener('click', e => {
   if(e.target === el.about || e.target.classList.contains('close'))
     el.about.classList.remove('open');
@@ -620,17 +756,23 @@ el.about.addEventListener('click', e => {
 // ---------------------------------------------------------- advance
 function advance(){
   idx += 1;
-  curMeta = imageMeta(idx);
+  curMeta = metaFor(idx);
   burn = 0;
   ignited = false;
-  // the slot vacated two images ago becomes the new incoming's canvas
-  synthesize(slotFor(idx + 1), imageMeta(idx + 1), W, H);
+  if(batch){
+    loadBatchTex(idx + 1);
+    loadBatchTex(idx + 2);
+  }else{
+    synthesizeInto(idx + 1);    // the slot vacated two images ago is reused
+  }
 }
 
 // ---------------------------------------------------------- main loop
+// 60fps target on mid-range mobile: the burn composite is the only heavy
+// per-frame pass; a governor sheds resolution if frame time slips past it.
 let last = performance.now();
-let frameCost = 16; // rolling avg, for the mobile perf fallback
-document.title = receiptTitle();
+let frameCost = 16;
+let running = false;
 
 function frame(now){
   requestAnimationFrame(frame);
@@ -638,13 +780,17 @@ function frame(now){
   last = now;
   if(dt > 0.1) dt = 0.1;                 // tab was hidden — fire doesn't time-skip
 
-  // adaptive resolution: one-time drop if we can't hold ~45fps
-  frameCost = frameCost*0.95 + (dt*1000)*0.05;
-  if(frameCost > 24 && renderScale > 1){
-    renderScale = Math.max(1, renderScale * 0.75);
-    frameCost = 16;
-    resize();
+  frameCost = frameCost*0.94 + (dt*1000)*0.06;
+  if(frameCost > 18 && renderScale > 0.5){          // shed pixels to hold 60fps
+    renderScale = Math.max(0.5, renderScale*0.8);
+    frameCost = 16; resize();
+  }else if(frameCost < 12.5 && renderScale < SCALE_MAX){
+    renderScale = Math.min(SCALE_MAX, renderScale*1.12);
+    frameCost = 16; resize();
   }
+
+  // kiosk attract mode: unattended, the feed consumes itself slowly
+  if(KIOSK && now - lastInputAt > 25000) inputAcc += dt*140;
 
   // ---- burn dynamics: scrub ignites, then the fire feeds itself
   if(inputAcc > 0){
@@ -656,29 +802,55 @@ function frame(now){
     onIgnition(curMeta);
   }
   if(ignited) burn += dt / curMeta.duration;
+  if(batch && !batchReady(idx + 1)) burn = Math.min(burn, 0.97);  // hold for the reveal
   if(burn >= 1){ advance(); }
   burn = Math.min(burn, 1);
 
   updateLedgerDisplay(dt);
 
   // ---- draw
-  gl.viewport(0, 0, W, H);
-  gl.useProgram(feedProg);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, slotFor(idx).tex);
-  gl.uniform1i(U.f_uTexOut, 0);
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, slotFor(idx + 1).tex);
-  gl.uniform1i(U.f_uTexIn, 1);
-  gl.uniform2f(U.f_uRes, W, H);
-  gl.uniform1f(U.f_uTime, now / 1000);
-  gl.uniform1f(U.f_uBurn, burn);
-  gl.uniform1f(U.f_uSeed, curMeta.seed);
-  gl.uniform1f(U.f_uHeat, curMeta.heat);
-  gl.bindVertexArray(vao);
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  const u = feedMat.uniforms;
+  u.uTexOut.value = textureFor(idx);
+  u.uTexIn.value  = textureFor(idx + 1) || textureFor(idx);
+  fitFor(idx,     u.uFitOut.value);
+  fitFor(idx + 1, u.uFitIn.value);
+  u.uRes.value.set(W, H);
+  u.uTime.value = now / 1000;
+  u.uBurn.value = burn;
+  u.uSeed.value = curMeta.seed;
+  u.uHeat.value = curMeta.heat;
+  renderer.setRenderTarget(null);
+  renderer.render(feedScene, cam);
 }
-requestAnimationFrame(frame);
+
+// ---------------------------------------------------------- boot
+// try the pre-generated batch first; fall back to live in-shader synthesis
+function start(){
+  if(running) return;
+  running = true;
+  curMeta = metaFor(0);
+  resize();
+  if(batch){ loadBatchTex(0); loadBatchTex(1); loadBatchTex(2); }
+  document.title = receiptTitle();
+  requestAnimationFrame(frame);
+}
+
+if(!GENMODE){
+  fetch('batch/manifest.json')
+    .then(r => r.ok ? r.json() : null)
+    .then(j => {
+      if(j && Array.isArray(j.images) && j.images.length > 0){
+        batch = j.images;
+        const note = document.getElementById('mode-note');
+        note.textContent = 'this feed serves a pre-generated batch of '
+          + j.images.length + ' images with per-image metadata. the burn '
+          + 'pass still runs live on your own GPU — the heat is yours.';
+      }
+    })
+    .catch(() => {})
+    .finally(start);
+  setTimeout(start, 1500);    // fetch hangs on some file:// engines — belt and braces
+}
 </script>
 </body>
 </html>

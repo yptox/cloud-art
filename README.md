@@ -52,15 +52,15 @@ The Mandelbrot set, rendered in GLSL with smooth iteration-count coloring and or
 
 A feed indistinguishable from any content platform: lush, editorial, machine-dreamed imagery, full-bleed, no chrome. But the scroll gesture is the ignition source — every image chars, embers, and heat-distorts in proportion to the energy its generation is estimated to have consumed, revealing the next pristine image beneath the fire. A bureaucratic ledger fades in after ten images and accumulates the debt: watt-hours, millilitres of cooling water, GPU-seconds, and the coordinates of the data center that paid. Burning is monotonic — the fire cannot be reversed, the ledger never resets, and the session total is written to the page title as a receipt. Refusal to scroll is the only ethical act available inside the work.
 
-**Technique:** WebGL 2.0, two GLSL passes. Pass one synthesizes each seeded "photograph" in-shader (domain-warped fbm, curated cosine palettes, photographic finish). Pass two is the combustion: a noise-advected burn front with emissive preheat cracks, white-hot blackbody rim, crumbling char band, ember particles on their own updraft, and heat-haze refraction over the reveal. Cost metadata is deterministic per image, scaled from published per-query estimates (Luccioni et&nbsp;al. 2023 for energy; Li et&nbsp;al. 2023 for water), cited in-page. Phase-1 prototype: the watts are drawn live from the viewer's own GPU.
+**Technique:** three.js + custom GLSL. The burn is signed-distance edge erosion driven by a noise-advected mask — emissive preheat cracks, white-hot blackbody rim, crumbling char band, ember particle emission, and a heat-haze refraction pass over the reveal; it is the only heavy per-frame pass, with a resolution governor holding a 60fps target on mobile. Imagery is a pre-generated batch of 240 images (`batch/` + `manifest.json`, produced by `scripts/generate-batch.mjs`) with per-image metadata — model class, inference seconds, estimated Wh, water draw, data-center coordinates — scaled from published per-query estimates (Luccioni et&nbsp;al. 2023 for energy; Li et&nbsp;al. 2023 for water) and cited in-page; where the batch is unreachable the same seeded compositions synthesize live in-shader on the viewer's GPU. A lightweight backend (`server/burnrate-counter.mjs`) accumulates one global cumulative ledger; `?kiosk=1` is the exhibition build (cursor hidden, attract-burn when idle).
 
-**→ [Open BURNRATE](burnrate.html)** | [Philosophy](philosophy/burnrate.md)
+**→ [Open BURNRATE](burnrate.html)** | [Philosophy](philosophy/burnrate.md) | [Dispatch](philosophy/burnrate-dispatch.md) | [Essay-video script](philosophy/burnrate-essay-video.md)
 
 ---
 
 ## Running
 
-Open any `.html` file directly in a modern browser. No install, no server — each piece is fully self-contained. Crenate uses p5.js from a CDN; Vermiculate, Abyss, and BURNRATE require WebGL 2.0 (Chrome 56+, Firefox 51+, Safari 15+).
+Open any `.html` file directly in a modern browser. No install, no server — each piece is fully self-contained. Crenate uses p5.js from a CDN; Vermiculate and Abyss require WebGL 2.0 (Chrome 56+, Firefox 51+, Safari 15+). BURNRATE uses a vendored three.js (`vendor/`) and works from `file://` via live synthesis; serve the directory over HTTP to get the pre-generated batch, and run `node server/burnrate-counter.mjs` for the global counter.
 
 ## Files
 
@@ -68,12 +68,21 @@ Open any `.html` file directly in a modern browser. No install, no server — ea
 crenate.html              differential growth (p5.js)
 vermiculate.html          reaction-diffusion (WebGL 2)
 abyss.html                fractal zoom (WebGL 2)
-burnrate.html             burning feed (WebGL 2)
+burnrate.html             burning feed (three.js + GLSL)
+batch/                    BURNRATE pre-generated imagery + metadata manifest
+scripts/
+  generate-batch.mjs      BURNRATE batch pipeline (headless render + manifest)
+server/
+  burnrate-counter.mjs    BURNRATE global cumulative ledger (no dependencies)
+vendor/
+  three.min.js            three.js r147 (MIT), vendored for file:// use
 philosophy/
   crenate.md              algorithmic philosophy
   vermiculate.md          algorithmic philosophy
   abyss.md                algorithmic philosophy
   burnrate.md             algorithmic philosophy
+  burnrate-dispatch.md    ~500-word publication dispatch
+  burnrate-essay-video.md making-of essay-video script
 gallery.png               Crenate contact sheet (6 seeds × 6 palettes)
 preview-seed1917.png      Crenate hero render
 ```

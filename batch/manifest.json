@@ -1,0 +1,4334 @@
+{
+ "work": "BURNRATE",
+ "generated": "2026-08-01T15:14:49.460Z",
+ "count": 240,
+ "note": "Per-image cost figures are estimates scaled from published per-query measurements: energy from Luccioni, Jernite & Strubell, \"Power Hungry Processing\" (2023, ~2.9 Wh mean per generated image); water from Li, Yang, Islam & Ren, \"Making AI Less Thirsty\" (2023, 1.8-12 L/kWh by site). Coordinates are published hyperscale data-center locations. Providers do not disclose per-query figures; estimation is the point.",
+ "units": {
+  "wh": "watt-hours",
+  "ml": "millilitres of freshwater",
+  "gpu": "GPU-seconds",
+  "infer": "inference wall-clock seconds"
+ },
+ "images": [
+  {
+   "file": "img-0000.jpg",
+   "res": "832x1216",
+   "seedIndex": 0,
+   "model": "upscale-x4/2048",
+   "infer": 8.19,
+   "wh": 7.098,
+   "ml": 8.7,
+   "gpu": 16.38,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.6,
+   "duration": 4.6
+  },
+  {
+   "file": "img-0001.jpg",
+   "res": "832x1216",
+   "seedIndex": 1,
+   "model": "diffusion-xl/1024",
+   "infer": 2.64,
+   "wh": 3.436,
+   "ml": 7.5,
+   "gpu": 5.28,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.2,
+   "duration": 3.21
+  },
+  {
+   "file": "img-0002.jpg",
+   "res": "832x1216",
+   "seedIndex": 2,
+   "model": "latent-v3/1536",
+   "infer": 3.23,
+   "wh": 3.581,
+   "ml": 9.9,
+   "gpu": 6.46,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.223,
+   "duration": 3.26
+  },
+  {
+   "file": "img-0003.jpg",
+   "res": "832x1216",
+   "seedIndex": 3,
+   "model": "latent-v3/1536",
+   "infer": 4.81,
+   "wh": 4.554,
+   "ml": 5,
+   "gpu": 9.63,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.379,
+   "duration": 3.63
+  },
+  {
+   "file": "img-0004.jpg",
+   "res": "832x1216",
+   "seedIndex": 4,
+   "model": "upscale-x4/2048",
+   "infer": 8.18,
+   "wh": 6.94,
+   "ml": 44.8,
+   "gpu": 16.36,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.6,
+   "duration": 4.54
+  },
+  {
+   "file": "img-0005.jpg",
+   "res": "832x1216",
+   "seedIndex": 5,
+   "model": "turbo-distill/512",
+   "infer": 1.08,
+   "wh": 1.047,
+   "ml": 4.4,
+   "gpu": 1.08,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 0.817,
+   "duration": 2.3
+  },
+  {
+   "file": "img-0006.jpg",
+   "res": "832x1216",
+   "seedIndex": 6,
+   "model": "flux-class/1408",
+   "infer": 6.25,
+   "wh": 5.617,
+   "ml": 6.8,
+   "gpu": 12.5,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.549,
+   "duration": 4.03
+  },
+  {
+   "file": "img-0007.jpg",
+   "res": "832x1216",
+   "seedIndex": 7,
+   "model": "upscale-x4/2048",
+   "infer": 6.9,
+   "wh": 5.421,
+   "ml": 11.1,
+   "gpu": 13.8,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.517,
+   "duration": 3.96
+  },
+  {
+   "file": "img-0008.jpg",
+   "res": "832x1216",
+   "seedIndex": 8,
+   "model": "upscale-x4/2048",
+   "infer": 7.81,
+   "wh": 6.75,
+   "ml": 17.6,
+   "gpu": 15.61,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.6,
+   "duration": 4.46
+  },
+  {
+   "file": "img-0009.jpg",
+   "res": "832x1216",
+   "seedIndex": 9,
+   "model": "upscale-x4/2048",
+   "infer": 7.47,
+   "wh": 7.44,
+   "ml": 16.5,
+   "gpu": 14.94,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.6,
+   "duration": 4.6
+  },
+  {
+   "file": "img-0010.jpg",
+   "res": "832x1216",
+   "seedIndex": 10,
+   "model": "turbo-distill/512",
+   "infer": 1.03,
+   "wh": 0.985,
+   "ml": 1.2,
+   "gpu": 1.03,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.808,
+   "duration": 2.27
+  },
+  {
+   "file": "img-0011.jpg",
+   "res": "832x1216",
+   "seedIndex": 11,
+   "model": "upscale-x4/2048",
+   "infer": 7.05,
+   "wh": 7.909,
+   "ml": 25,
+   "gpu": 14.11,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.6,
+   "duration": 4.6
+  },
+  {
+   "file": "img-0012.jpg",
+   "res": "832x1216",
+   "seedIndex": 12,
+   "model": "diffusion-xl/1024",
+   "infer": 3.11,
+   "wh": 3.104,
+   "ml": 16.4,
+   "gpu": 6.21,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.147,
+   "duration": 3.08
+  },
+  {
+   "file": "img-0013.jpg",
+   "res": "832x1216",
+   "seedIndex": 13,
+   "model": "consistency-hd/1792",
+   "infer": 4.33,
+   "wh": 4.178,
+   "ml": 12.6,
+   "gpu": 8.66,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.318,
+   "duration": 3.49
+  },
+  {
+   "file": "img-0014.jpg",
+   "res": "832x1216",
+   "seedIndex": 14,
+   "model": "latent-v3/1536",
+   "infer": 4.6,
+   "wh": 3.741,
+   "ml": 19.7,
+   "gpu": 9.2,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.249,
+   "duration": 3.32
+  },
+  {
+   "file": "img-0015.jpg",
+   "res": "832x1216",
+   "seedIndex": 15,
+   "model": "turbo-distill/512",
+   "infer": 1.11,
+   "wh": 0.961,
+   "ml": 0.9,
+   "gpu": 1.11,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.804,
+   "duration": 2.26
+  },
+  {
+   "file": "img-0016.jpg",
+   "res": "832x1216",
+   "seedIndex": 16,
+   "model": "turbo-distill/512",
+   "infer": 0.83,
+   "wh": 1.027,
+   "ml": 3.2,
+   "gpu": 0.83,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 0.814,
+   "duration": 2.29
+  },
+  {
+   "file": "img-0017.jpg",
+   "res": "832x1216",
+   "seedIndex": 17,
+   "model": "consistency-hd/1792",
+   "infer": 4.1,
+   "wh": 4.932,
+   "ml": 4.8,
+   "gpu": 8.19,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.439,
+   "duration": 3.77
+  },
+  {
+   "file": "img-0018.jpg",
+   "res": "832x1216",
+   "seedIndex": 18,
+   "model": "diffusion-xl/1024",
+   "infer": 3.89,
+   "wh": 3.282,
+   "ml": 5.9,
+   "gpu": 7.78,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.175,
+   "duration": 3.15
+  },
+  {
+   "file": "img-0019.jpg",
+   "res": "832x1216",
+   "seedIndex": 19,
+   "model": "consistency-hd/1792",
+   "infer": 4.25,
+   "wh": 4.19,
+   "ml": 20.8,
+   "gpu": 8.5,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.32,
+   "duration": 3.49
+  },
+  {
+   "file": "img-0020.jpg",
+   "res": "832x1216",
+   "seedIndex": 20,
+   "model": "latent-v3/1536",
+   "infer": 3.52,
+   "wh": 3.805,
+   "ml": 4.5,
+   "gpu": 7.05,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.259,
+   "duration": 3.35
+  },
+  {
+   "file": "img-0021.jpg",
+   "res": "832x1216",
+   "seedIndex": 21,
+   "model": "turbo-distill/512",
+   "infer": 0.79,
+   "wh": 0.997,
+   "ml": 1,
+   "gpu": 0.79,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.81,
+   "duration": 2.28
+  },
+  {
+   "file": "img-0022.jpg",
+   "res": "832x1216",
+   "seedIndex": 22,
+   "model": "latent-v3/1536",
+   "infer": 4.13,
+   "wh": 3.028,
+   "ml": 3.1,
+   "gpu": 8.27,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.134,
+   "duration": 3.05
+  },
+  {
+   "file": "img-0023.jpg",
+   "res": "832x1216",
+   "seedIndex": 23,
+   "model": "latent-v3/1536",
+   "infer": 4.61,
+   "wh": 2.843,
+   "ml": 7.5,
+   "gpu": 9.22,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.105,
+   "duration": 2.98
+  },
+  {
+   "file": "img-0024.jpg",
+   "res": "832x1216",
+   "seedIndex": 24,
+   "model": "flux-class/1408",
+   "infer": 5.04,
+   "wh": 5.767,
+   "ml": 15.1,
+   "gpu": 10.07,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.573,
+   "duration": 4.09
+  },
+  {
+   "file": "img-0025.jpg",
+   "res": "832x1216",
+   "seedIndex": 25,
+   "model": "latent-v3/1536",
+   "infer": 4.32,
+   "wh": 3.388,
+   "ml": 20.5,
+   "gpu": 8.65,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.192,
+   "duration": 3.19
+  },
+  {
+   "file": "img-0026.jpg",
+   "res": "832x1216",
+   "seedIndex": 26,
+   "model": "latent-v3/1536",
+   "infer": 3.52,
+   "wh": 3.929,
+   "ml": 9,
+   "gpu": 7.05,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.279,
+   "duration": 3.39
+  },
+  {
+   "file": "img-0027.jpg",
+   "res": "832x1216",
+   "seedIndex": 27,
+   "model": "flux-class/1408",
+   "infer": 6.45,
+   "wh": 4.136,
+   "ml": 13.5,
+   "gpu": 12.9,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.312,
+   "duration": 3.47
+  },
+  {
+   "file": "img-0028.jpg",
+   "res": "832x1216",
+   "seedIndex": 28,
+   "model": "diffusion-xl/1024",
+   "infer": 3.69,
+   "wh": 2.622,
+   "ml": 7,
+   "gpu": 7.37,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.07,
+   "duration": 2.9
+  },
+  {
+   "file": "img-0029.jpg",
+   "res": "832x1216",
+   "seedIndex": 29,
+   "model": "upscale-x4/2048",
+   "infer": 6.78,
+   "wh": 6.309,
+   "ml": 6.2,
+   "gpu": 13.56,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.6,
+   "duration": 4.3
+  },
+  {
+   "file": "img-0030.jpg",
+   "res": "832x1216",
+   "seedIndex": 30,
+   "model": "turbo-distill/512",
+   "infer": 1.08,
+   "wh": 0.788,
+   "ml": 0.8,
+   "gpu": 1.08,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.776,
+   "duration": 2.2
+  },
+  {
+   "file": "img-0031.jpg",
+   "res": "832x1216",
+   "seedIndex": 31,
+   "model": "latent-v3/1536",
+   "infer": 5.11,
+   "wh": 3.186,
+   "ml": 4,
+   "gpu": 10.22,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.16,
+   "duration": 3.11
+  },
+  {
+   "file": "img-0032.jpg",
+   "res": "832x1216",
+   "seedIndex": 32,
+   "model": "diffusion-xl/1024",
+   "infer": 3.5,
+   "wh": 3.765,
+   "ml": 8.8,
+   "gpu": 7,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.252,
+   "duration": 3.33
+  },
+  {
+   "file": "img-0033.jpg",
+   "res": "832x1216",
+   "seedIndex": 33,
+   "model": "flux-class/1408",
+   "infer": 6.5,
+   "wh": 3.946,
+   "ml": 4.8,
+   "gpu": 13,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.281,
+   "duration": 3.4
+  },
+  {
+   "file": "img-0034.jpg",
+   "res": "832x1216",
+   "seedIndex": 34,
+   "model": "upscale-x4/2048",
+   "infer": 8.76,
+   "wh": 6.883,
+   "ml": 35.1,
+   "gpu": 17.52,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.6,
+   "duration": 4.52
+  },
+  {
+   "file": "img-0035.jpg",
+   "res": "832x1216",
+   "seedIndex": 35,
+   "model": "flux-class/1408",
+   "infer": 5.56,
+   "wh": 4.167,
+   "ml": 12,
+   "gpu": 11.12,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.317,
+   "duration": 3.48
+  },
+  {
+   "file": "img-0036.jpg",
+   "res": "832x1216",
+   "seedIndex": 36,
+   "model": "upscale-x4/2048",
+   "infer": 7.03,
+   "wh": 5.674,
+   "ml": 15.5,
+   "gpu": 14.06,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.558,
+   "duration": 4.06
+  },
+  {
+   "file": "img-0037.jpg",
+   "res": "832x1216",
+   "seedIndex": 37,
+   "model": "diffusion-xl/1024",
+   "infer": 4,
+   "wh": 2.867,
+   "ml": 12.2,
+   "gpu": 8,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.109,
+   "duration": 2.99
+  },
+  {
+   "file": "img-0038.jpg",
+   "res": "832x1216",
+   "seedIndex": 38,
+   "model": "latent-v3/1536",
+   "infer": 3.68,
+   "wh": 3.432,
+   "ml": 7.8,
+   "gpu": 7.35,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.199,
+   "duration": 3.2
+  },
+  {
+   "file": "img-0039.jpg",
+   "res": "832x1216",
+   "seedIndex": 39,
+   "model": "latent-v3/1536",
+   "infer": 3.32,
+   "wh": 4.574,
+   "ml": 26.1,
+   "gpu": 6.65,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.382,
+   "duration": 3.64
+  },
+  {
+   "file": "img-0040.jpg",
+   "res": "832x1216",
+   "seedIndex": 40,
+   "model": "flux-class/1408",
+   "infer": 5.76,
+   "wh": 5.262,
+   "ml": 6.6,
+   "gpu": 11.53,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.492,
+   "duration": 3.9
+  },
+  {
+   "file": "img-0041.jpg",
+   "res": "832x1216",
+   "seedIndex": 41,
+   "model": "turbo-distill/512",
+   "infer": 1.11,
+   "wh": 0.662,
+   "ml": 4,
+   "gpu": 1.11,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 0.756,
+   "duration": 2.15
+  },
+  {
+   "file": "img-0042.jpg",
+   "res": "832x1216",
+   "seedIndex": 42,
+   "model": "turbo-distill/512",
+   "infer": 0.81,
+   "wh": 0.826,
+   "ml": 4.3,
+   "gpu": 0.81,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 0.782,
+   "duration": 2.21
+  },
+  {
+   "file": "img-0043.jpg",
+   "res": "832x1216",
+   "seedIndex": 43,
+   "model": "turbo-distill/512",
+   "infer": 0.73,
+   "wh": 0.853,
+   "ml": 4.2,
+   "gpu": 0.73,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 0.787,
+   "duration": 2.22
+  },
+  {
+   "file": "img-0044.jpg",
+   "res": "832x1216",
+   "seedIndex": 44,
+   "model": "diffusion-xl/1024",
+   "infer": 3.52,
+   "wh": 2.811,
+   "ml": 14.3,
+   "gpu": 7.03,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.1,
+   "duration": 2.97
+  },
+  {
+   "file": "img-0045.jpg",
+   "res": "832x1216",
+   "seedIndex": 45,
+   "model": "upscale-x4/2048",
+   "infer": 6.58,
+   "wh": 7.233,
+   "ml": 7.6,
+   "gpu": 13.15,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.6,
+   "duration": 4.6
+  },
+  {
+   "file": "img-0046.jpg",
+   "res": "832x1216",
+   "seedIndex": 46,
+   "model": "diffusion-xl/1024",
+   "infer": 2.58,
+   "wh": 2.566,
+   "ml": 2.7,
+   "gpu": 5.17,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.061,
+   "duration": 2.87
+  },
+  {
+   "file": "img-0047.jpg",
+   "res": "832x1216",
+   "seedIndex": 47,
+   "model": "consistency-hd/1792",
+   "infer": 4.65,
+   "wh": 3.102,
+   "ml": 20.6,
+   "gpu": 9.3,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.146,
+   "duration": 3.08
+  },
+  {
+   "file": "img-0048.jpg",
+   "res": "832x1216",
+   "seedIndex": 48,
+   "model": "consistency-hd/1792",
+   "infer": 4.51,
+   "wh": 4.001,
+   "ml": 24.8,
+   "gpu": 9.03,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.29,
+   "duration": 3.42
+  },
+  {
+   "file": "img-0049.jpg",
+   "res": "832x1216",
+   "seedIndex": 49,
+   "model": "turbo-distill/512",
+   "infer": 0.72,
+   "wh": 0.698,
+   "ml": 1.2,
+   "gpu": 0.72,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 0.762,
+   "duration": 2.17
+  },
+  {
+   "file": "img-0050.jpg",
+   "res": "832x1216",
+   "seedIndex": 50,
+   "model": "consistency-hd/1792",
+   "infer": 5.91,
+   "wh": 3.975,
+   "ml": 7.8,
+   "gpu": 11.83,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.286,
+   "duration": 3.41
+  },
+  {
+   "file": "img-0051.jpg",
+   "res": "832x1216",
+   "seedIndex": 51,
+   "model": "flux-class/1408",
+   "infer": 6.11,
+   "wh": 4.091,
+   "ml": 12.2,
+   "gpu": 12.21,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.305,
+   "duration": 3.45
+  },
+  {
+   "file": "img-0052.jpg",
+   "res": "832x1216",
+   "seedIndex": 52,
+   "model": "flux-class/1408",
+   "infer": 5.81,
+   "wh": 6.039,
+   "ml": 12.6,
+   "gpu": 11.61,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.6,
+   "duration": 4.19
+  },
+  {
+   "file": "img-0053.jpg",
+   "res": "832x1216",
+   "seedIndex": 53,
+   "model": "turbo-distill/512",
+   "infer": 0.87,
+   "wh": 0.812,
+   "ml": 1.6,
+   "gpu": 0.87,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 0.78,
+   "duration": 2.21
+  },
+  {
+   "file": "img-0054.jpg",
+   "res": "832x1216",
+   "seedIndex": 54,
+   "model": "consistency-hd/1792",
+   "infer": 4.02,
+   "wh": 4.199,
+   "ml": 12.8,
+   "gpu": 8.05,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.322,
+   "duration": 3.5
+  },
+  {
+   "file": "img-0055.jpg",
+   "res": "832x1216",
+   "seedIndex": 55,
+   "model": "consistency-hd/1792",
+   "infer": 4.26,
+   "wh": 4.988,
+   "ml": 10.4,
+   "gpu": 8.52,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.448,
+   "duration": 3.8
+  },
+  {
+   "file": "img-0056.jpg",
+   "res": "832x1216",
+   "seedIndex": 56,
+   "model": "latent-v3/1536",
+   "infer": 4.41,
+   "wh": 2.564,
+   "ml": 6.9,
+   "gpu": 8.81,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.06,
+   "duration": 2.87
+  },
+  {
+   "file": "img-0057.jpg",
+   "res": "832x1216",
+   "seedIndex": 57,
+   "model": "diffusion-xl/1024",
+   "infer": 3.4,
+   "wh": 2.296,
+   "ml": 5,
+   "gpu": 6.8,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.017,
+   "duration": 2.77
+  },
+  {
+   "file": "img-0058.jpg",
+   "res": "832x1216",
+   "seedIndex": 58,
+   "model": "turbo-distill/512",
+   "infer": 0.81,
+   "wh": 0.613,
+   "ml": 1.3,
+   "gpu": 0.81,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 0.748,
+   "duration": 2.13
+  },
+  {
+   "file": "img-0059.jpg",
+   "res": "832x1216",
+   "seedIndex": 59,
+   "model": "flux-class/1408",
+   "infer": 4.64,
+   "wh": 6.023,
+   "ml": 37.6,
+   "gpu": 9.27,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.6,
+   "duration": 4.19
+  },
+  {
+   "file": "img-0060.jpg",
+   "res": "832x1216",
+   "seedIndex": 60,
+   "model": "upscale-x4/2048",
+   "infer": 8.21,
+   "wh": 7.698,
+   "ml": 12.8,
+   "gpu": 16.43,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.6,
+   "duration": 4.6
+  },
+  {
+   "file": "img-0061.jpg",
+   "res": "832x1216",
+   "seedIndex": 61,
+   "model": "latent-v3/1536",
+   "infer": 3.22,
+   "wh": 3.052,
+   "ml": 3.4,
+   "gpu": 6.44,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.138,
+   "duration": 3.06
+  },
+  {
+   "file": "img-0062.jpg",
+   "res": "832x1216",
+   "seedIndex": 62,
+   "model": "diffusion-xl/1024",
+   "infer": 3.11,
+   "wh": 2.618,
+   "ml": 14.6,
+   "gpu": 6.21,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.069,
+   "duration": 2.89
+  },
+  {
+   "file": "img-0063.jpg",
+   "res": "832x1216",
+   "seedIndex": 63,
+   "model": "latent-v3/1536",
+   "infer": 4.25,
+   "wh": 2.975,
+   "ml": 6.1,
+   "gpu": 8.51,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.126,
+   "duration": 3.03
+  },
+  {
+   "file": "img-0064.jpg",
+   "res": "832x1216",
+   "seedIndex": 64,
+   "model": "upscale-x4/2048",
+   "infer": 8.32,
+   "wh": 5.022,
+   "ml": 12,
+   "gpu": 16.64,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.454,
+   "duration": 3.81
+  },
+  {
+   "file": "img-0065.jpg",
+   "res": "832x1216",
+   "seedIndex": 65,
+   "model": "turbo-distill/512",
+   "infer": 0.72,
+   "wh": 0.902,
+   "ml": 2.5,
+   "gpu": 0.72,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 0.794,
+   "duration": 2.24
+  },
+  {
+   "file": "img-0066.jpg",
+   "res": "832x1216",
+   "seedIndex": 66,
+   "model": "consistency-hd/1792",
+   "infer": 5.54,
+   "wh": 3.027,
+   "ml": 8,
+   "gpu": 11.08,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.134,
+   "duration": 3.05
+  },
+  {
+   "file": "img-0067.jpg",
+   "res": "832x1216",
+   "seedIndex": 67,
+   "model": "diffusion-xl/1024",
+   "infer": 3.61,
+   "wh": 3.683,
+   "ml": 11.4,
+   "gpu": 7.22,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.239,
+   "duration": 3.3
+  },
+  {
+   "file": "img-0068.jpg",
+   "res": "832x1216",
+   "seedIndex": 68,
+   "model": "diffusion-xl/1024",
+   "infer": 2.58,
+   "wh": 2.256,
+   "ml": 4.9,
+   "gpu": 5.17,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.011,
+   "duration": 2.76
+  },
+  {
+   "file": "img-0069.jpg",
+   "res": "832x1216",
+   "seedIndex": 69,
+   "model": "upscale-x4/2048",
+   "infer": 5.8,
+   "wh": 5.512,
+   "ml": 16.4,
+   "gpu": 11.59,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.532,
+   "duration": 3.99
+  },
+  {
+   "file": "img-0070.jpg",
+   "res": "832x1216",
+   "seedIndex": 70,
+   "model": "flux-class/1408",
+   "infer": 6.32,
+   "wh": 3.796,
+   "ml": 12.6,
+   "gpu": 12.64,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.257,
+   "duration": 3.34
+  },
+  {
+   "file": "img-0071.jpg",
+   "res": "832x1216",
+   "seedIndex": 71,
+   "model": "latent-v3/1536",
+   "infer": 5.19,
+   "wh": 2.828,
+   "ml": 7.1,
+   "gpu": 10.38,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.102,
+   "duration": 2.97
+  },
+  {
+   "file": "img-0072.jpg",
+   "res": "832x1216",
+   "seedIndex": 72,
+   "model": "diffusion-xl/1024",
+   "infer": 2.64,
+   "wh": 3.576,
+   "ml": 9.2,
+   "gpu": 5.28,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.222,
+   "duration": 3.26
+  },
+  {
+   "file": "img-0073.jpg",
+   "res": "832x1216",
+   "seedIndex": 73,
+   "model": "diffusion-xl/1024",
+   "infer": 3.48,
+   "wh": 2.197,
+   "ml": 2.5,
+   "gpu": 6.96,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.001,
+   "duration": 2.73
+  },
+  {
+   "file": "img-0074.jpg",
+   "res": "832x1216",
+   "seedIndex": 74,
+   "model": "turbo-distill/512",
+   "infer": 0.91,
+   "wh": 0.646,
+   "ml": 1.9,
+   "gpu": 0.91,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 0.753,
+   "duration": 2.15
+  },
+  {
+   "file": "img-0075.jpg",
+   "res": "832x1216",
+   "seedIndex": 75,
+   "model": "upscale-x4/2048",
+   "infer": 6.02,
+   "wh": 7.188,
+   "ml": 32.4,
+   "gpu": 12.03,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.6,
+   "duration": 4.6
+  },
+  {
+   "file": "img-0076.jpg",
+   "res": "832x1216",
+   "seedIndex": 76,
+   "model": "consistency-hd/1792",
+   "infer": 4.62,
+   "wh": 3.543,
+   "ml": 19,
+   "gpu": 9.24,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.217,
+   "duration": 3.25
+  },
+  {
+   "file": "img-0077.jpg",
+   "res": "832x1216",
+   "seedIndex": 77,
+   "model": "upscale-x4/2048",
+   "infer": 6.29,
+   "wh": 6.933,
+   "ml": 11.5,
+   "gpu": 12.58,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.6,
+   "duration": 4.53
+  },
+  {
+   "file": "img-0078.jpg",
+   "res": "832x1216",
+   "seedIndex": 78,
+   "model": "latent-v3/1536",
+   "infer": 4.85,
+   "wh": 3.386,
+   "ml": 7.8,
+   "gpu": 9.71,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.192,
+   "duration": 3.19
+  },
+  {
+   "file": "img-0079.jpg",
+   "res": "832x1216",
+   "seedIndex": 79,
+   "model": "consistency-hd/1792",
+   "infer": 4.84,
+   "wh": 3.72,
+   "ml": 7.8,
+   "gpu": 9.67,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.245,
+   "duration": 3.31
+  },
+  {
+   "file": "img-0080.jpg",
+   "res": "832x1216",
+   "seedIndex": 80,
+   "model": "latent-v3/1536",
+   "infer": 3.9,
+   "wh": 4.311,
+   "ml": 8.8,
+   "gpu": 7.79,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.34,
+   "duration": 3.54
+  },
+  {
+   "file": "img-0081.jpg",
+   "res": "832x1216",
+   "seedIndex": 81,
+   "model": "flux-class/1408",
+   "infer": 5.16,
+   "wh": 5.052,
+   "ml": 5.9,
+   "gpu": 10.33,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.458,
+   "duration": 3.82
+  },
+  {
+   "file": "img-0082.jpg",
+   "res": "832x1216",
+   "seedIndex": 82,
+   "model": "latent-v3/1536",
+   "infer": 5.12,
+   "wh": 3.008,
+   "ml": 10.4,
+   "gpu": 10.24,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.131,
+   "duration": 3.04
+  },
+  {
+   "file": "img-0083.jpg",
+   "res": "832x1216",
+   "seedIndex": 83,
+   "model": "flux-class/1408",
+   "infer": 4.95,
+   "wh": 4.957,
+   "ml": 5.6,
+   "gpu": 9.9,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.443,
+   "duration": 3.78
+  },
+  {
+   "file": "img-0084.jpg",
+   "res": "832x1216",
+   "seedIndex": 84,
+   "model": "diffusion-xl/1024",
+   "infer": 3.02,
+   "wh": 2.62,
+   "ml": 13,
+   "gpu": 6.04,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.069,
+   "duration": 2.9
+  },
+  {
+   "file": "img-0085.jpg",
+   "res": "832x1216",
+   "seedIndex": 85,
+   "model": "diffusion-xl/1024",
+   "infer": 3.57,
+   "wh": 3.185,
+   "ml": 7.3,
+   "gpu": 7.14,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.16,
+   "duration": 3.11
+  },
+  {
+   "file": "img-0086.jpg",
+   "res": "832x1216",
+   "seedIndex": 86,
+   "model": "latent-v3/1536",
+   "infer": 4.04,
+   "wh": 4.077,
+   "ml": 12.1,
+   "gpu": 8.08,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.302,
+   "duration": 3.45
+  },
+  {
+   "file": "img-0087.jpg",
+   "res": "832x1216",
+   "seedIndex": 87,
+   "model": "flux-class/1408",
+   "infer": 4.65,
+   "wh": 4.006,
+   "ml": 4,
+   "gpu": 9.3,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.291,
+   "duration": 3.42
+  },
+  {
+   "file": "img-0088.jpg",
+   "res": "832x1216",
+   "seedIndex": 88,
+   "model": "latent-v3/1536",
+   "infer": 5.02,
+   "wh": 2.839,
+   "ml": 5,
+   "gpu": 10.05,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.104,
+   "duration": 2.98
+  },
+  {
+   "file": "img-0089.jpg",
+   "res": "832x1216",
+   "seedIndex": 89,
+   "model": "upscale-x4/2048",
+   "infer": 8.31,
+   "wh": 7.999,
+   "ml": 18.9,
+   "gpu": 16.62,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.6,
+   "duration": 4.6
+  },
+  {
+   "file": "img-0090.jpg",
+   "res": "832x1216",
+   "seedIndex": 90,
+   "model": "flux-class/1408",
+   "infer": 5.3,
+   "wh": 4.97,
+   "ml": 29.2,
+   "gpu": 10.6,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.445,
+   "duration": 3.79
+  },
+  {
+   "file": "img-0091.jpg",
+   "res": "832x1216",
+   "seedIndex": 91,
+   "model": "consistency-hd/1792",
+   "infer": 4.78,
+   "wh": 5.121,
+   "ml": 11.7,
+   "gpu": 9.57,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.469,
+   "duration": 3.85
+  },
+  {
+   "file": "img-0092.jpg",
+   "res": "832x1216",
+   "seedIndex": 92,
+   "model": "turbo-distill/512",
+   "infer": 0.78,
+   "wh": 0.885,
+   "ml": 2.4,
+   "gpu": 0.78,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 0.792,
+   "duration": 2.24
+  },
+  {
+   "file": "img-0093.jpg",
+   "res": "832x1216",
+   "seedIndex": 93,
+   "model": "upscale-x4/2048",
+   "infer": 9.18,
+   "wh": 6.689,
+   "ml": 10.9,
+   "gpu": 18.37,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.6,
+   "duration": 4.44
+  },
+  {
+   "file": "img-0094.jpg",
+   "res": "832x1216",
+   "seedIndex": 94,
+   "model": "latent-v3/1536",
+   "infer": 3.68,
+   "wh": 3.499,
+   "ml": 6.7,
+   "gpu": 7.35,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.21,
+   "duration": 3.23
+  },
+  {
+   "file": "img-0095.jpg",
+   "res": "832x1216",
+   "seedIndex": 95,
+   "model": "latent-v3/1536",
+   "infer": 3.69,
+   "wh": 3.958,
+   "ml": 11.1,
+   "gpu": 7.39,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.283,
+   "duration": 3.4
+  },
+  {
+   "file": "img-0096.jpg",
+   "res": "832x1216",
+   "seedIndex": 96,
+   "model": "flux-class/1408",
+   "infer": 4.84,
+   "wh": 4.139,
+   "ml": 25.5,
+   "gpu": 9.68,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.312,
+   "duration": 3.47
+  },
+  {
+   "file": "img-0097.jpg",
+   "res": "832x1216",
+   "seedIndex": 97,
+   "model": "upscale-x4/2048",
+   "infer": 6.79,
+   "wh": 4.64,
+   "ml": 14.4,
+   "gpu": 13.58,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.392,
+   "duration": 3.66
+  },
+  {
+   "file": "img-0098.jpg",
+   "res": "832x1216",
+   "seedIndex": 98,
+   "model": "turbo-distill/512",
+   "infer": 0.82,
+   "wh": 1.055,
+   "ml": 4.3,
+   "gpu": 0.82,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 0.819,
+   "duration": 2.3
+  },
+  {
+   "file": "img-0099.jpg",
+   "res": "832x1216",
+   "seedIndex": 99,
+   "model": "flux-class/1408",
+   "infer": 6.03,
+   "wh": 4.017,
+   "ml": 10.5,
+   "gpu": 12.06,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.293,
+   "duration": 3.43
+  },
+  {
+   "file": "img-0100.jpg",
+   "res": "832x1216",
+   "seedIndex": 100,
+   "model": "upscale-x4/2048",
+   "infer": 6.75,
+   "wh": 6.364,
+   "ml": 7.2,
+   "gpu": 13.5,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.6,
+   "duration": 4.32
+  },
+  {
+   "file": "img-0101.jpg",
+   "res": "832x1216",
+   "seedIndex": 101,
+   "model": "diffusion-xl/1024",
+   "infer": 3.31,
+   "wh": 2.414,
+   "ml": 5.4,
+   "gpu": 6.63,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.036,
+   "duration": 2.82
+  },
+  {
+   "file": "img-0102.jpg",
+   "res": "832x1216",
+   "seedIndex": 102,
+   "model": "latent-v3/1536",
+   "infer": 3.87,
+   "wh": 2.661,
+   "ml": 2.8,
+   "gpu": 7.74,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.076,
+   "duration": 2.91
+  },
+  {
+   "file": "img-0103.jpg",
+   "res": "832x1216",
+   "seedIndex": 103,
+   "model": "consistency-hd/1792",
+   "infer": 4.5,
+   "wh": 4.882,
+   "ml": 14,
+   "gpu": 9,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.431,
+   "duration": 3.76
+  },
+  {
+   "file": "img-0104.jpg",
+   "res": "832x1216",
+   "seedIndex": 104,
+   "model": "turbo-distill/512",
+   "infer": 1.02,
+   "wh": 0.881,
+   "ml": 1.8,
+   "gpu": 1.02,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 0.791,
+   "duration": 2.23
+  },
+  {
+   "file": "img-0105.jpg",
+   "res": "832x1216",
+   "seedIndex": 105,
+   "model": "latent-v3/1536",
+   "infer": 3.53,
+   "wh": 3.679,
+   "ml": 7.3,
+   "gpu": 7.05,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.239,
+   "duration": 3.3
+  },
+  {
+   "file": "img-0106.jpg",
+   "res": "832x1216",
+   "seedIndex": 106,
+   "model": "consistency-hd/1792",
+   "infer": 5.56,
+   "wh": 4.676,
+   "ml": 19.2,
+   "gpu": 11.11,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.398,
+   "duration": 3.68
+  },
+  {
+   "file": "img-0107.jpg",
+   "res": "832x1216",
+   "seedIndex": 107,
+   "model": "latent-v3/1536",
+   "infer": 3.46,
+   "wh": 3.279,
+   "ml": 10.6,
+   "gpu": 6.91,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.175,
+   "duration": 3.15
+  },
+  {
+   "file": "img-0108.jpg",
+   "res": "832x1216",
+   "seedIndex": 108,
+   "model": "turbo-distill/512",
+   "infer": 1.17,
+   "wh": 0.819,
+   "ml": 2.2,
+   "gpu": 1.17,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 0.781,
+   "duration": 2.21
+  },
+  {
+   "file": "img-0109.jpg",
+   "res": "832x1216",
+   "seedIndex": 109,
+   "model": "consistency-hd/1792",
+   "infer": 5.7,
+   "wh": 3.776,
+   "ml": 23.2,
+   "gpu": 11.41,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.254,
+   "duration": 3.33
+  },
+  {
+   "file": "img-0110.jpg",
+   "res": "832x1216",
+   "seedIndex": 110,
+   "model": "diffusion-xl/1024",
+   "infer": 2.48,
+   "wh": 3.384,
+   "ml": 14.4,
+   "gpu": 4.97,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.191,
+   "duration": 3.19
+  },
+  {
+   "file": "img-0111.jpg",
+   "res": "832x1216",
+   "seedIndex": 111,
+   "model": "turbo-distill/512",
+   "infer": 0.87,
+   "wh": 0.899,
+   "ml": 2.2,
+   "gpu": 0.87,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 0.794,
+   "duration": 2.24
+  },
+  {
+   "file": "img-0112.jpg",
+   "res": "832x1216",
+   "seedIndex": 112,
+   "model": "diffusion-xl/1024",
+   "infer": 3.26,
+   "wh": 3.519,
+   "ml": 18.9,
+   "gpu": 6.51,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.213,
+   "duration": 3.24
+  },
+  {
+   "file": "img-0113.jpg",
+   "res": "832x1216",
+   "seedIndex": 113,
+   "model": "flux-class/1408",
+   "infer": 6.97,
+   "wh": 5.936,
+   "ml": 11.8,
+   "gpu": 13.93,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.6,
+   "duration": 4.16
+  },
+  {
+   "file": "img-0114.jpg",
+   "res": "832x1216",
+   "seedIndex": 114,
+   "model": "consistency-hd/1792",
+   "infer": 5.62,
+   "wh": 3.385,
+   "ml": 9.5,
+   "gpu": 11.25,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.192,
+   "duration": 3.19
+  },
+  {
+   "file": "img-0115.jpg",
+   "res": "832x1216",
+   "seedIndex": 115,
+   "model": "consistency-hd/1792",
+   "infer": 5.06,
+   "wh": 3.81,
+   "ml": 23.1,
+   "gpu": 10.12,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.26,
+   "duration": 3.35
+  },
+  {
+   "file": "img-0116.jpg",
+   "res": "832x1216",
+   "seedIndex": 116,
+   "model": "flux-class/1408",
+   "infer": 5.23,
+   "wh": 4.79,
+   "ml": 23,
+   "gpu": 10.45,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.416,
+   "duration": 3.72
+  },
+  {
+   "file": "img-0117.jpg",
+   "res": "832x1216",
+   "seedIndex": 117,
+   "model": "upscale-x4/2048",
+   "infer": 8.07,
+   "wh": 6.679,
+   "ml": 20.8,
+   "gpu": 16.14,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.6,
+   "duration": 4.44
+  },
+  {
+   "file": "img-0118.jpg",
+   "res": "832x1216",
+   "seedIndex": 118,
+   "model": "latent-v3/1536",
+   "infer": 3.53,
+   "wh": 3.73,
+   "ml": 4.4,
+   "gpu": 7.06,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.247,
+   "duration": 3.32
+  },
+  {
+   "file": "img-0119.jpg",
+   "res": "832x1216",
+   "seedIndex": 119,
+   "model": "turbo-distill/512",
+   "infer": 0.98,
+   "wh": 0.622,
+   "ml": 1.7,
+   "gpu": 0.98,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 0.75,
+   "duration": 2.14
+  },
+  {
+   "file": "img-0120.jpg",
+   "res": "832x1216",
+   "seedIndex": 120,
+   "model": "flux-class/1408",
+   "infer": 5.02,
+   "wh": 5.955,
+   "ml": 32.6,
+   "gpu": 10.03,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.6,
+   "duration": 4.16
+  },
+  {
+   "file": "img-0121.jpg",
+   "res": "832x1216",
+   "seedIndex": 121,
+   "model": "turbo-distill/512",
+   "infer": 1.05,
+   "wh": 0.691,
+   "ml": 2,
+   "gpu": 1.05,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 0.761,
+   "duration": 2.16
+  },
+  {
+   "file": "img-0122.jpg",
+   "res": "832x1216",
+   "seedIndex": 122,
+   "model": "flux-class/1408",
+   "infer": 6.6,
+   "wh": 4.08,
+   "ml": 8.6,
+   "gpu": 13.21,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.303,
+   "duration": 3.45
+  },
+  {
+   "file": "img-0123.jpg",
+   "res": "832x1216",
+   "seedIndex": 123,
+   "model": "latent-v3/1536",
+   "infer": 3.29,
+   "wh": 4.286,
+   "ml": 9.3,
+   "gpu": 6.59,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.336,
+   "duration": 3.53
+  },
+  {
+   "file": "img-0124.jpg",
+   "res": "832x1216",
+   "seedIndex": 124,
+   "model": "turbo-distill/512",
+   "infer": 1.09,
+   "wh": 0.874,
+   "ml": 1.8,
+   "gpu": 1.09,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 0.79,
+   "duration": 2.23
+  },
+  {
+   "file": "img-0125.jpg",
+   "res": "832x1216",
+   "seedIndex": 125,
+   "model": "flux-class/1408",
+   "infer": 7.08,
+   "wh": 3.87,
+   "ml": 12.3,
+   "gpu": 14.16,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.269,
+   "duration": 3.37
+  },
+  {
+   "file": "img-0126.jpg",
+   "res": "832x1216",
+   "seedIndex": 126,
+   "model": "upscale-x4/2048",
+   "infer": 7.68,
+   "wh": 4.757,
+   "ml": 23.8,
+   "gpu": 15.36,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.411,
+   "duration": 3.71
+  },
+  {
+   "file": "img-0127.jpg",
+   "res": "832x1216",
+   "seedIndex": 127,
+   "model": "flux-class/1408",
+   "infer": 6.99,
+   "wh": 3.948,
+   "ml": 12.2,
+   "gpu": 13.98,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.282,
+   "duration": 3.4
+  },
+  {
+   "file": "img-0128.jpg",
+   "res": "832x1216",
+   "seedIndex": 128,
+   "model": "consistency-hd/1792",
+   "infer": 4.71,
+   "wh": 3.629,
+   "ml": 3.5,
+   "gpu": 9.41,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.231,
+   "duration": 3.28
+  },
+  {
+   "file": "img-0129.jpg",
+   "res": "832x1216",
+   "seedIndex": 129,
+   "model": "diffusion-xl/1024",
+   "infer": 3.53,
+   "wh": 2.233,
+   "ml": 7.8,
+   "gpu": 7.05,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.007,
+   "duration": 2.75
+  },
+  {
+   "file": "img-0130.jpg",
+   "res": "832x1216",
+   "seedIndex": 130,
+   "model": "diffusion-xl/1024",
+   "infer": 3.48,
+   "wh": 2.785,
+   "ml": 3,
+   "gpu": 6.96,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.096,
+   "duration": 2.96
+  },
+  {
+   "file": "img-0131.jpg",
+   "res": "832x1216",
+   "seedIndex": 131,
+   "model": "latent-v3/1536",
+   "infer": 3.32,
+   "wh": 2.672,
+   "ml": 3.1,
+   "gpu": 6.63,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.078,
+   "duration": 2.92
+  },
+  {
+   "file": "img-0132.jpg",
+   "res": "832x1216",
+   "seedIndex": 132,
+   "model": "latent-v3/1536",
+   "infer": 3.98,
+   "wh": 3.535,
+   "ml": 15.5,
+   "gpu": 7.97,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.216,
+   "duration": 3.24
+  },
+  {
+   "file": "img-0133.jpg",
+   "res": "832x1216",
+   "seedIndex": 133,
+   "model": "consistency-hd/1792",
+   "infer": 5.31,
+   "wh": 4.112,
+   "ml": 9.9,
+   "gpu": 10.61,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.308,
+   "duration": 3.46
+  },
+  {
+   "file": "img-0134.jpg",
+   "res": "832x1216",
+   "seedIndex": 134,
+   "model": "turbo-distill/512",
+   "infer": 0.85,
+   "wh": 0.699,
+   "ml": 0.8,
+   "gpu": 0.85,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.762,
+   "duration": 2.17
+  },
+  {
+   "file": "img-0135.jpg",
+   "res": "832x1216",
+   "seedIndex": 135,
+   "model": "consistency-hd/1792",
+   "infer": 3.99,
+   "wh": 3.545,
+   "ml": 9.5,
+   "gpu": 7.98,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.217,
+   "duration": 3.25
+  },
+  {
+   "file": "img-0136.jpg",
+   "res": "832x1216",
+   "seedIndex": 136,
+   "model": "consistency-hd/1792",
+   "infer": 4.37,
+   "wh": 3.298,
+   "ml": 3.7,
+   "gpu": 8.74,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.178,
+   "duration": 3.15
+  },
+  {
+   "file": "img-0137.jpg",
+   "res": "832x1216",
+   "seedIndex": 137,
+   "model": "turbo-distill/512",
+   "infer": 0.78,
+   "wh": 0.755,
+   "ml": 1.4,
+   "gpu": 0.78,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 0.771,
+   "duration": 2.19
+  },
+  {
+   "file": "img-0138.jpg",
+   "res": "832x1216",
+   "seedIndex": 138,
+   "model": "latent-v3/1536",
+   "infer": 3.28,
+   "wh": 3.953,
+   "ml": 24.7,
+   "gpu": 6.56,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.283,
+   "duration": 3.4
+  },
+  {
+   "file": "img-0139.jpg",
+   "res": "832x1216",
+   "seedIndex": 139,
+   "model": "diffusion-xl/1024",
+   "infer": 2.89,
+   "wh": 2.327,
+   "ml": 11.6,
+   "gpu": 5.78,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.022,
+   "duration": 2.78
+  },
+  {
+   "file": "img-0140.jpg",
+   "res": "832x1216",
+   "seedIndex": 140,
+   "model": "flux-class/1408",
+   "infer": 4.9,
+   "wh": 4.466,
+   "ml": 11.9,
+   "gpu": 9.8,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.365,
+   "duration": 3.6
+  },
+  {
+   "file": "img-0141.jpg",
+   "res": "832x1216",
+   "seedIndex": 141,
+   "model": "flux-class/1408",
+   "infer": 4.74,
+   "wh": 4.388,
+   "ml": 12.7,
+   "gpu": 9.47,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.352,
+   "duration": 3.57
+  },
+  {
+   "file": "img-0142.jpg",
+   "res": "832x1216",
+   "seedIndex": 142,
+   "model": "consistency-hd/1792",
+   "infer": 4.5,
+   "wh": 5.075,
+   "ml": 12.7,
+   "gpu": 9,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.462,
+   "duration": 3.83
+  },
+  {
+   "file": "img-0143.jpg",
+   "res": "832x1216",
+   "seedIndex": 143,
+   "model": "turbo-distill/512",
+   "infer": 1.07,
+   "wh": 0.732,
+   "ml": 2.6,
+   "gpu": 1.07,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 0.767,
+   "duration": 2.18
+  },
+  {
+   "file": "img-0144.jpg",
+   "res": "832x1216",
+   "seedIndex": 144,
+   "model": "flux-class/1408",
+   "infer": 6.26,
+   "wh": 5.825,
+   "ml": 24.9,
+   "gpu": 12.53,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.582,
+   "duration": 4.11
+  },
+  {
+   "file": "img-0145.jpg",
+   "res": "832x1216",
+   "seedIndex": 145,
+   "model": "turbo-distill/512",
+   "infer": 0.73,
+   "wh": 0.632,
+   "ml": 1.3,
+   "gpu": 0.73,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 0.751,
+   "duration": 2.14
+  },
+  {
+   "file": "img-0146.jpg",
+   "res": "832x1216",
+   "seedIndex": 146,
+   "model": "latent-v3/1536",
+   "infer": 4.1,
+   "wh": 3.526,
+   "ml": 9,
+   "gpu": 8.2,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.214,
+   "duration": 3.24
+  },
+  {
+   "file": "img-0147.jpg",
+   "res": "832x1216",
+   "seedIndex": 147,
+   "model": "latent-v3/1536",
+   "infer": 3.73,
+   "wh": 4.489,
+   "ml": 4.9,
+   "gpu": 7.45,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.368,
+   "duration": 3.61
+  },
+  {
+   "file": "img-0148.jpg",
+   "res": "832x1216",
+   "seedIndex": 148,
+   "model": "upscale-x4/2048",
+   "infer": 6.35,
+   "wh": 6.936,
+   "ml": 14.9,
+   "gpu": 12.71,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.6,
+   "duration": 4.54
+  },
+  {
+   "file": "img-0149.jpg",
+   "res": "832x1216",
+   "seedIndex": 149,
+   "model": "turbo-distill/512",
+   "infer": 1.11,
+   "wh": 0.879,
+   "ml": 1.9,
+   "gpu": 1.11,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 0.791,
+   "duration": 2.23
+  },
+  {
+   "file": "img-0150.jpg",
+   "res": "832x1216",
+   "seedIndex": 150,
+   "model": "turbo-distill/512",
+   "infer": 0.83,
+   "wh": 1.038,
+   "ml": 1.3,
+   "gpu": 0.83,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.816,
+   "duration": 2.29
+  },
+  {
+   "file": "img-0151.jpg",
+   "res": "832x1216",
+   "seedIndex": 151,
+   "model": "diffusion-xl/1024",
+   "infer": 2.73,
+   "wh": 3.714,
+   "ml": 8.3,
+   "gpu": 5.46,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.244,
+   "duration": 3.31
+  },
+  {
+   "file": "img-0152.jpg",
+   "res": "832x1216",
+   "seedIndex": 152,
+   "model": "turbo-distill/512",
+   "infer": 0.99,
+   "wh": 0.936,
+   "ml": 2,
+   "gpu": 0.99,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 0.8,
+   "duration": 2.26
+  },
+  {
+   "file": "img-0153.jpg",
+   "res": "832x1216",
+   "seedIndex": 153,
+   "model": "upscale-x4/2048",
+   "infer": 6.03,
+   "wh": 6.6,
+   "ml": 11,
+   "gpu": 12.06,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.6,
+   "duration": 4.41
+  },
+  {
+   "file": "img-0154.jpg",
+   "res": "832x1216",
+   "seedIndex": 154,
+   "model": "turbo-distill/512",
+   "infer": 0.98,
+   "wh": 0.693,
+   "ml": 0.7,
+   "gpu": 0.98,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.761,
+   "duration": 2.16
+  },
+  {
+   "file": "img-0155.jpg",
+   "res": "832x1216",
+   "seedIndex": 155,
+   "model": "turbo-distill/512",
+   "infer": 0.84,
+   "wh": 0.919,
+   "ml": 2.7,
+   "gpu": 0.84,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 0.797,
+   "duration": 2.25
+  },
+  {
+   "file": "img-0156.jpg",
+   "res": "832x1216",
+   "seedIndex": 156,
+   "model": "consistency-hd/1792",
+   "infer": 4.22,
+   "wh": 4.687,
+   "ml": 7.9,
+   "gpu": 8.43,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.4,
+   "duration": 3.68
+  },
+  {
+   "file": "img-0157.jpg",
+   "res": "832x1216",
+   "seedIndex": 157,
+   "model": "turbo-distill/512",
+   "infer": 0.98,
+   "wh": 0.9,
+   "ml": 2,
+   "gpu": 0.98,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 0.794,
+   "duration": 2.24
+  },
+  {
+   "file": "img-0158.jpg",
+   "res": "832x1216",
+   "seedIndex": 158,
+   "model": "diffusion-xl/1024",
+   "infer": 3.11,
+   "wh": 2.377,
+   "ml": 5.6,
+   "gpu": 6.22,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.03,
+   "duration": 2.8
+  },
+  {
+   "file": "img-0159.jpg",
+   "res": "832x1216",
+   "seedIndex": 159,
+   "model": "flux-class/1408",
+   "infer": 6.74,
+   "wh": 4.297,
+   "ml": 11.3,
+   "gpu": 13.47,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.338,
+   "duration": 3.53
+  },
+  {
+   "file": "img-0160.jpg",
+   "res": "832x1216",
+   "seedIndex": 160,
+   "model": "turbo-distill/512",
+   "infer": 1.09,
+   "wh": 0.931,
+   "ml": 1,
+   "gpu": 1.09,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.799,
+   "duration": 2.25
+  },
+  {
+   "file": "img-0161.jpg",
+   "res": "832x1216",
+   "seedIndex": 161,
+   "model": "diffusion-xl/1024",
+   "infer": 3.09,
+   "wh": 2.515,
+   "ml": 2.8,
+   "gpu": 6.18,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.052,
+   "duration": 2.86
+  },
+  {
+   "file": "img-0162.jpg",
+   "res": "832x1216",
+   "seedIndex": 162,
+   "model": "latent-v3/1536",
+   "infer": 5.1,
+   "wh": 3,
+   "ml": 12.4,
+   "gpu": 10.2,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.13,
+   "duration": 3.04
+  },
+  {
+   "file": "img-0163.jpg",
+   "res": "832x1216",
+   "seedIndex": 163,
+   "model": "upscale-x4/2048",
+   "infer": 7.31,
+   "wh": 7.08,
+   "ml": 17.6,
+   "gpu": 14.61,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.6,
+   "duration": 4.59
+  },
+  {
+   "file": "img-0164.jpg",
+   "res": "832x1216",
+   "seedIndex": 164,
+   "model": "flux-class/1408",
+   "infer": 4.68,
+   "wh": 4.02,
+   "ml": 7.9,
+   "gpu": 9.35,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.293,
+   "duration": 3.43
+  },
+  {
+   "file": "img-0165.jpg",
+   "res": "832x1216",
+   "seedIndex": 165,
+   "model": "upscale-x4/2048",
+   "infer": 6.82,
+   "wh": 6.37,
+   "ml": 19.3,
+   "gpu": 13.63,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.6,
+   "duration": 4.32
+  },
+  {
+   "file": "img-0166.jpg",
+   "res": "832x1216",
+   "seedIndex": 166,
+   "model": "turbo-distill/512",
+   "infer": 0.74,
+   "wh": 0.741,
+   "ml": 1.4,
+   "gpu": 0.74,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 0.769,
+   "duration": 2.18
+  },
+  {
+   "file": "img-0167.jpg",
+   "res": "832x1216",
+   "seedIndex": 167,
+   "model": "upscale-x4/2048",
+   "infer": 6.8,
+   "wh": 7.008,
+   "ml": 21.7,
+   "gpu": 13.59,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.6,
+   "duration": 4.56
+  },
+  {
+   "file": "img-0168.jpg",
+   "res": "832x1216",
+   "seedIndex": 168,
+   "model": "consistency-hd/1792",
+   "infer": 5.15,
+   "wh": 4.143,
+   "ml": 13,
+   "gpu": 10.3,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.313,
+   "duration": 3.47
+  },
+  {
+   "file": "img-0169.jpg",
+   "res": "832x1216",
+   "seedIndex": 169,
+   "model": "consistency-hd/1792",
+   "infer": 4.87,
+   "wh": 3.826,
+   "ml": 7.7,
+   "gpu": 9.74,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.262,
+   "duration": 3.35
+  },
+  {
+   "file": "img-0170.jpg",
+   "res": "832x1216",
+   "seedIndex": 170,
+   "model": "turbo-distill/512",
+   "infer": 1.13,
+   "wh": 1.075,
+   "ml": 3,
+   "gpu": 1.13,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 0.822,
+   "duration": 2.31
+  },
+  {
+   "file": "img-0171.jpg",
+   "res": "832x1216",
+   "seedIndex": 171,
+   "model": "flux-class/1408",
+   "infer": 4.55,
+   "wh": 5.106,
+   "ml": 11.6,
+   "gpu": 9.11,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.467,
+   "duration": 3.84
+  },
+  {
+   "file": "img-0172.jpg",
+   "res": "832x1216",
+   "seedIndex": 172,
+   "model": "latent-v3/1536",
+   "infer": 3.53,
+   "wh": 2.949,
+   "ml": 7.2,
+   "gpu": 7.06,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.122,
+   "duration": 3.02
+  },
+  {
+   "file": "img-0173.jpg",
+   "res": "832x1216",
+   "seedIndex": 173,
+   "model": "turbo-distill/512",
+   "infer": 0.85,
+   "wh": 1.026,
+   "ml": 1,
+   "gpu": 0.85,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.814,
+   "duration": 2.29
+  },
+  {
+   "file": "img-0174.jpg",
+   "res": "832x1216",
+   "seedIndex": 174,
+   "model": "upscale-x4/2048",
+   "infer": 7.93,
+   "wh": 5.119,
+   "ml": 5.8,
+   "gpu": 15.87,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.469,
+   "duration": 3.85
+  },
+  {
+   "file": "img-0175.jpg",
+   "res": "832x1216",
+   "seedIndex": 175,
+   "model": "upscale-x4/2048",
+   "infer": 9.17,
+   "wh": 7.857,
+   "ml": 31.9,
+   "gpu": 18.35,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.6,
+   "duration": 4.6
+  },
+  {
+   "file": "img-0176.jpg",
+   "res": "832x1216",
+   "seedIndex": 176,
+   "model": "upscale-x4/2048",
+   "infer": 9.17,
+   "wh": 5.49,
+   "ml": 10.5,
+   "gpu": 18.34,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.528,
+   "duration": 3.99
+  },
+  {
+   "file": "img-0177.jpg",
+   "res": "832x1216",
+   "seedIndex": 177,
+   "model": "consistency-hd/1792",
+   "infer": 3.93,
+   "wh": 4.125,
+   "ml": 8.2,
+   "gpu": 7.85,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.31,
+   "duration": 3.47
+  },
+  {
+   "file": "img-0178.jpg",
+   "res": "832x1216",
+   "seedIndex": 178,
+   "model": "flux-class/1408",
+   "infer": 4.63,
+   "wh": 5.552,
+   "ml": 24.8,
+   "gpu": 9.26,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.538,
+   "duration": 4.01
+  },
+  {
+   "file": "img-0179.jpg",
+   "res": "832x1216",
+   "seedIndex": 179,
+   "model": "upscale-x4/2048",
+   "infer": 8.9,
+   "wh": 5.686,
+   "ml": 12.9,
+   "gpu": 17.81,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.56,
+   "duration": 4.06
+  },
+  {
+   "file": "img-0180.jpg",
+   "res": "832x1216",
+   "seedIndex": 180,
+   "model": "upscale-x4/2048",
+   "infer": 8.86,
+   "wh": 7.374,
+   "ml": 31.6,
+   "gpu": 17.73,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.6,
+   "duration": 4.6
+  },
+  {
+   "file": "img-0181.jpg",
+   "res": "832x1216",
+   "seedIndex": 181,
+   "model": "upscale-x4/2048",
+   "infer": 6.51,
+   "wh": 4.977,
+   "ml": 15.3,
+   "gpu": 13.02,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.446,
+   "duration": 3.79
+  },
+  {
+   "file": "img-0182.jpg",
+   "res": "832x1216",
+   "seedIndex": 182,
+   "model": "diffusion-xl/1024",
+   "infer": 2.78,
+   "wh": 2.384,
+   "ml": 4.6,
+   "gpu": 5.56,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.031,
+   "duration": 2.81
+  },
+  {
+   "file": "img-0183.jpg",
+   "res": "832x1216",
+   "seedIndex": 183,
+   "model": "diffusion-xl/1024",
+   "infer": 2.99,
+   "wh": 2.275,
+   "ml": 6.1,
+   "gpu": 5.99,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.014,
+   "duration": 2.76
+  },
+  {
+   "file": "img-0184.jpg",
+   "res": "832x1216",
+   "seedIndex": 184,
+   "model": "upscale-x4/2048",
+   "infer": 8.83,
+   "wh": 8.149,
+   "ml": 52.7,
+   "gpu": 17.66,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.6,
+   "duration": 4.6
+  },
+  {
+   "file": "img-0185.jpg",
+   "res": "832x1216",
+   "seedIndex": 185,
+   "model": "turbo-distill/512",
+   "infer": 1.14,
+   "wh": 0.782,
+   "ml": 5.2,
+   "gpu": 1.14,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 0.775,
+   "duration": 2.2
+  },
+  {
+   "file": "img-0186.jpg",
+   "res": "832x1216",
+   "seedIndex": 186,
+   "model": "turbo-distill/512",
+   "infer": 0.78,
+   "wh": 0.966,
+   "ml": 1.2,
+   "gpu": 0.78,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.805,
+   "duration": 2.27
+  },
+  {
+   "file": "img-0187.jpg",
+   "res": "832x1216",
+   "seedIndex": 187,
+   "model": "flux-class/1408",
+   "infer": 5.16,
+   "wh": 3.648,
+   "ml": 10.2,
+   "gpu": 10.33,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.234,
+   "duration": 3.29
+  },
+  {
+   "file": "img-0188.jpg",
+   "res": "832x1216",
+   "seedIndex": 188,
+   "model": "turbo-distill/512",
+   "infer": 0.72,
+   "wh": 0.637,
+   "ml": 1.5,
+   "gpu": 0.72,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 0.752,
+   "duration": 2.14
+  },
+  {
+   "file": "img-0189.jpg",
+   "res": "832x1216",
+   "seedIndex": 189,
+   "model": "diffusion-xl/1024",
+   "infer": 2.93,
+   "wh": 3.19,
+   "ml": 7.2,
+   "gpu": 5.86,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.16,
+   "duration": 3.11
+  },
+  {
+   "file": "img-0190.jpg",
+   "res": "832x1216",
+   "seedIndex": 190,
+   "model": "upscale-x4/2048",
+   "infer": 7.75,
+   "wh": 4.633,
+   "ml": 22.2,
+   "gpu": 15.5,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.391,
+   "duration": 3.66
+  },
+  {
+   "file": "img-0191.jpg",
+   "res": "832x1216",
+   "seedIndex": 191,
+   "model": "turbo-distill/512",
+   "infer": 0.96,
+   "wh": 0.936,
+   "ml": 1.2,
+   "gpu": 0.96,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.8,
+   "duration": 2.26
+  },
+  {
+   "file": "img-0192.jpg",
+   "res": "832x1216",
+   "seedIndex": 192,
+   "model": "diffusion-xl/1024",
+   "infer": 2.52,
+   "wh": 3.67,
+   "ml": 21.5,
+   "gpu": 5.03,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.237,
+   "duration": 3.29
+  },
+  {
+   "file": "img-0193.jpg",
+   "res": "832x1216",
+   "seedIndex": 193,
+   "model": "upscale-x4/2048",
+   "infer": 8.12,
+   "wh": 6.531,
+   "ml": 7.4,
+   "gpu": 16.24,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.6,
+   "duration": 4.38
+  },
+  {
+   "file": "img-0194.jpg",
+   "res": "832x1216",
+   "seedIndex": 194,
+   "model": "diffusion-xl/1024",
+   "infer": 2.53,
+   "wh": 2.287,
+   "ml": 2.2,
+   "gpu": 5.07,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.016,
+   "duration": 2.77
+  },
+  {
+   "file": "img-0195.jpg",
+   "res": "832x1216",
+   "seedIndex": 195,
+   "model": "consistency-hd/1792",
+   "infer": 4.05,
+   "wh": 3.571,
+   "ml": 9.3,
+   "gpu": 8.11,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.221,
+   "duration": 3.26
+  },
+  {
+   "file": "img-0196.jpg",
+   "res": "832x1216",
+   "seedIndex": 196,
+   "model": "latent-v3/1536",
+   "infer": 4.74,
+   "wh": 3.568,
+   "ml": 9.5,
+   "gpu": 9.49,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.221,
+   "duration": 3.26
+  },
+  {
+   "file": "img-0197.jpg",
+   "res": "832x1216",
+   "seedIndex": 197,
+   "model": "upscale-x4/2048",
+   "infer": 8.59,
+   "wh": 5.247,
+   "ml": 15.3,
+   "gpu": 17.17,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.49,
+   "duration": 3.89
+  },
+  {
+   "file": "img-0198.jpg",
+   "res": "832x1216",
+   "seedIndex": 198,
+   "model": "consistency-hd/1792",
+   "infer": 5.23,
+   "wh": 5.199,
+   "ml": 5.1,
+   "gpu": 10.46,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.482,
+   "duration": 3.88
+  },
+  {
+   "file": "img-0199.jpg",
+   "res": "832x1216",
+   "seedIndex": 199,
+   "model": "consistency-hd/1792",
+   "infer": 4.86,
+   "wh": 3.322,
+   "ml": 11.5,
+   "gpu": 9.71,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.181,
+   "duration": 3.16
+  },
+  {
+   "file": "img-0200.jpg",
+   "res": "832x1216",
+   "seedIndex": 200,
+   "model": "flux-class/1408",
+   "infer": 5.09,
+   "wh": 5.125,
+   "ml": 12.8,
+   "gpu": 10.18,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.47,
+   "duration": 3.85
+  },
+  {
+   "file": "img-0201.jpg",
+   "res": "832x1216",
+   "seedIndex": 201,
+   "model": "upscale-x4/2048",
+   "infer": 6.29,
+   "wh": 6.815,
+   "ml": 16.4,
+   "gpu": 12.58,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.6,
+   "duration": 4.49
+  },
+  {
+   "file": "img-0202.jpg",
+   "res": "832x1216",
+   "seedIndex": 202,
+   "model": "flux-class/1408",
+   "infer": 7.12,
+   "wh": 4.772,
+   "ml": 12.5,
+   "gpu": 14.24,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.413,
+   "duration": 3.71
+  },
+  {
+   "file": "img-0203.jpg",
+   "res": "832x1216",
+   "seedIndex": 203,
+   "model": "flux-class/1408",
+   "infer": 4.49,
+   "wh": 6.168,
+   "ml": 15.8,
+   "gpu": 8.99,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.6,
+   "duration": 4.24
+  },
+  {
+   "file": "img-0204.jpg",
+   "res": "832x1216",
+   "seedIndex": 204,
+   "model": "diffusion-xl/1024",
+   "infer": 2.94,
+   "wh": 2.74,
+   "ml": 17,
+   "gpu": 5.87,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.088,
+   "duration": 2.94
+  },
+  {
+   "file": "img-0205.jpg",
+   "res": "832x1216",
+   "seedIndex": 205,
+   "model": "upscale-x4/2048",
+   "infer": 7.32,
+   "wh": 4.627,
+   "ml": 9.3,
+   "gpu": 14.65,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.39,
+   "duration": 3.66
+  },
+  {
+   "file": "img-0206.jpg",
+   "res": "832x1216",
+   "seedIndex": 206,
+   "model": "consistency-hd/1792",
+   "infer": 4.36,
+   "wh": 3.356,
+   "ml": 20,
+   "gpu": 8.72,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.187,
+   "duration": 3.18
+  },
+  {
+   "file": "img-0207.jpg",
+   "res": "832x1216",
+   "seedIndex": 207,
+   "model": "turbo-distill/512",
+   "infer": 0.82,
+   "wh": 0.714,
+   "ml": 1.9,
+   "gpu": 0.82,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 0.764,
+   "duration": 2.17
+  },
+  {
+   "file": "img-0208.jpg",
+   "res": "832x1216",
+   "seedIndex": 208,
+   "model": "consistency-hd/1792",
+   "infer": 5.35,
+   "wh": 4.187,
+   "ml": 10.6,
+   "gpu": 10.71,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.32,
+   "duration": 3.49
+  },
+  {
+   "file": "img-0209.jpg",
+   "res": "832x1216",
+   "seedIndex": 209,
+   "model": "consistency-hd/1792",
+   "infer": 4.98,
+   "wh": 5.027,
+   "ml": 5.5,
+   "gpu": 9.96,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 1.454,
+   "duration": 3.81
+  },
+  {
+   "file": "img-0210.jpg",
+   "res": "832x1216",
+   "seedIndex": 210,
+   "model": "latent-v3/1536",
+   "infer": 3.29,
+   "wh": 3.739,
+   "ml": 8.9,
+   "gpu": 6.57,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.248,
+   "duration": 3.32
+  },
+  {
+   "file": "img-0211.jpg",
+   "res": "832x1216",
+   "seedIndex": 211,
+   "model": "upscale-x4/2048",
+   "infer": 5.88,
+   "wh": 6.36,
+   "ml": 22.1,
+   "gpu": 11.76,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.6,
+   "duration": 4.32
+  },
+  {
+   "file": "img-0212.jpg",
+   "res": "832x1216",
+   "seedIndex": 212,
+   "model": "consistency-hd/1792",
+   "infer": 4.89,
+   "wh": 5.193,
+   "ml": 10.6,
+   "gpu": 9.78,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.481,
+   "duration": 3.87
+  },
+  {
+   "file": "img-0213.jpg",
+   "res": "832x1216",
+   "seedIndex": 213,
+   "model": "diffusion-xl/1024",
+   "infer": 3.59,
+   "wh": 2.997,
+   "ml": 13.4,
+   "gpu": 7.18,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.13,
+   "duration": 3.04
+  },
+  {
+   "file": "img-0214.jpg",
+   "res": "832x1216",
+   "seedIndex": 214,
+   "model": "latent-v3/1536",
+   "infer": 4.62,
+   "wh": 4.127,
+   "ml": 9.7,
+   "gpu": 9.24,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.31,
+   "duration": 3.47
+  },
+  {
+   "file": "img-0215.jpg",
+   "res": "832x1216",
+   "seedIndex": 215,
+   "model": "turbo-distill/512",
+   "infer": 0.74,
+   "wh": 0.609,
+   "ml": 1.6,
+   "gpu": 0.74,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 0.747,
+   "duration": 2.13
+  },
+  {
+   "file": "img-0216.jpg",
+   "res": "832x1216",
+   "seedIndex": 216,
+   "model": "latent-v3/1536",
+   "infer": 4.48,
+   "wh": 4.321,
+   "ml": 10,
+   "gpu": 8.96,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.341,
+   "duration": 3.54
+  },
+  {
+   "file": "img-0217.jpg",
+   "res": "832x1216",
+   "seedIndex": 217,
+   "model": "flux-class/1408",
+   "infer": 5.1,
+   "wh": 5.504,
+   "ml": 11.8,
+   "gpu": 10.21,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.531,
+   "duration": 3.99
+  },
+  {
+   "file": "img-0218.jpg",
+   "res": "832x1216",
+   "seedIndex": 218,
+   "model": "latent-v3/1536",
+   "infer": 5.1,
+   "wh": 4.446,
+   "ml": 10,
+   "gpu": 10.2,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 1.361,
+   "duration": 3.59
+  },
+  {
+   "file": "img-0219.jpg",
+   "res": "832x1216",
+   "seedIndex": 219,
+   "model": "turbo-distill/512",
+   "infer": 0.8,
+   "wh": 0.985,
+   "ml": 1.9,
+   "gpu": 0.8,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 0.808,
+   "duration": 2.27
+  },
+  {
+   "file": "img-0220.jpg",
+   "res": "832x1216",
+   "seedIndex": 220,
+   "model": "diffusion-xl/1024",
+   "infer": 3.41,
+   "wh": 2.388,
+   "ml": 7.3,
+   "gpu": 6.83,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.032,
+   "duration": 2.81
+  },
+  {
+   "file": "img-0221.jpg",
+   "res": "832x1216",
+   "seedIndex": 221,
+   "model": "diffusion-xl/1024",
+   "infer": 2.56,
+   "wh": 3.491,
+   "ml": 10.2,
+   "gpu": 5.11,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.209,
+   "duration": 3.23
+  },
+  {
+   "file": "img-0222.jpg",
+   "res": "832x1216",
+   "seedIndex": 222,
+   "model": "latent-v3/1536",
+   "infer": 5.03,
+   "wh": 2.756,
+   "ml": 5.8,
+   "gpu": 10.06,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.091,
+   "duration": 2.95
+  },
+  {
+   "file": "img-0223.jpg",
+   "res": "832x1216",
+   "seedIndex": 223,
+   "model": "diffusion-xl/1024",
+   "infer": 3.65,
+   "wh": 3.877,
+   "ml": 6.4,
+   "gpu": 7.31,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.27,
+   "duration": 3.37
+  },
+  {
+   "file": "img-0224.jpg",
+   "res": "832x1216",
+   "seedIndex": 224,
+   "model": "diffusion-xl/1024",
+   "infer": 3.93,
+   "wh": 2.228,
+   "ml": 4.1,
+   "gpu": 7.87,
+   "site": {
+    "lat": "53.4491 N",
+    "lon": "6.8340 E",
+    "place": "eemshaven, netherlands",
+    "wue": 1.9
+   },
+   "heat": 1.006,
+   "duration": 2.75
+  },
+  {
+   "file": "img-0225.jpg",
+   "res": "832x1216",
+   "seedIndex": 225,
+   "model": "upscale-x4/2048",
+   "infer": 6.67,
+   "wh": 6.43,
+   "ml": 27.7,
+   "gpu": 13.35,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.6,
+   "duration": 4.34
+  },
+  {
+   "file": "img-0226.jpg",
+   "res": "832x1216",
+   "seedIndex": 226,
+   "model": "turbo-distill/512",
+   "infer": 1.04,
+   "wh": 0.69,
+   "ml": 2.4,
+   "gpu": 1.04,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 0.76,
+   "duration": 2.16
+  },
+  {
+   "file": "img-0227.jpg",
+   "res": "832x1216",
+   "seedIndex": 227,
+   "model": "turbo-distill/512",
+   "infer": 1.14,
+   "wh": 0.756,
+   "ml": 0.8,
+   "gpu": 1.14,
+   "site": {
+    "lat": "60.5325 N",
+    "lon": "27.1442 E",
+    "place": "hamina, finland",
+    "wue": 1.1
+   },
+   "heat": 0.771,
+   "duration": 2.19
+  },
+  {
+   "file": "img-0228.jpg",
+   "res": "832x1216",
+   "seedIndex": 228,
+   "model": "turbo-distill/512",
+   "infer": 0.79,
+   "wh": 0.705,
+   "ml": 2,
+   "gpu": 0.79,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 0.763,
+   "duration": 2.17
+  },
+  {
+   "file": "img-0229.jpg",
+   "res": "832x1216",
+   "seedIndex": 229,
+   "model": "latent-v3/1536",
+   "infer": 3.69,
+   "wh": 2.573,
+   "ml": 8.6,
+   "gpu": 7.38,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.062,
+   "duration": 2.88
+  },
+  {
+   "file": "img-0230.jpg",
+   "res": "832x1216",
+   "seedIndex": 230,
+   "model": "diffusion-xl/1024",
+   "infer": 3.08,
+   "wh": 3.601,
+   "ml": 9.7,
+   "gpu": 6.16,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.226,
+   "duration": 3.27
+  },
+  {
+   "file": "img-0231.jpg",
+   "res": "832x1216",
+   "seedIndex": 231,
+   "model": "upscale-x4/2048",
+   "infer": 5.84,
+   "wh": 6.346,
+   "ml": 19.9,
+   "gpu": 11.69,
+   "site": {
+    "lat": "44.2998 N",
+    "lon": "120.8345 W",
+    "place": "prineville, oregon",
+    "wue": 2.8
+   },
+   "heat": 1.6,
+   "duration": 4.31
+  },
+  {
+   "file": "img-0232.jpg",
+   "res": "832x1216",
+   "seedIndex": 232,
+   "model": "latent-v3/1536",
+   "infer": 4.72,
+   "wh": 3.803,
+   "ml": 11.6,
+   "gpu": 9.44,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.258,
+   "duration": 3.35
+  },
+  {
+   "file": "img-0233.jpg",
+   "res": "832x1216",
+   "seedIndex": 233,
+   "model": "consistency-hd/1792",
+   "infer": 4.39,
+   "wh": 3.012,
+   "ml": 6.8,
+   "gpu": 8.77,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.132,
+   "duration": 3.04
+  },
+  {
+   "file": "img-0234.jpg",
+   "res": "832x1216",
+   "seedIndex": 234,
+   "model": "latent-v3/1536",
+   "infer": 3.73,
+   "wh": 3.199,
+   "ml": 6.9,
+   "gpu": 7.46,
+   "site": {
+    "lat": "47.2343 N",
+    "lon": "119.8553 W",
+    "place": "quincy, washington",
+    "wue": 2.2
+   },
+   "heat": 1.162,
+   "duration": 3.12
+  },
+  {
+   "file": "img-0235.jpg",
+   "res": "832x1216",
+   "seedIndex": 235,
+   "model": "consistency-hd/1792",
+   "infer": 5.9,
+   "wh": 3.363,
+   "ml": 21.5,
+   "gpu": 11.79,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.188,
+   "duration": 3.18
+  },
+  {
+   "file": "img-0236.jpg",
+   "res": "832x1216",
+   "seedIndex": 236,
+   "model": "diffusion-xl/1024",
+   "infer": 2.55,
+   "wh": 2.701,
+   "ml": 8,
+   "gpu": 5.1,
+   "site": {
+    "lat": "41.2619 N",
+    "lon": "95.8608 W",
+    "place": "council bluffs, iowa",
+    "wue": 3.1
+   },
+   "heat": 1.082,
+   "duration": 2.93
+  },
+  {
+   "file": "img-0237.jpg",
+   "res": "832x1216",
+   "seedIndex": 237,
+   "model": "flux-class/1408",
+   "infer": 6.97,
+   "wh": 3.632,
+   "ml": 18.7,
+   "gpu": 13.94,
+   "site": {
+    "lat": "29.4241 N",
+    "lon": "98.4936 W",
+    "place": "san antonio, texas",
+    "wue": 5.8
+   },
+   "heat": 1.231,
+   "duration": 3.28
+  },
+  {
+   "file": "img-0238.jpg",
+   "res": "832x1216",
+   "seedIndex": 238,
+   "model": "flux-class/1408",
+   "infer": 5.16,
+   "wh": 4.185,
+   "ml": 19.6,
+   "gpu": 10.31,
+   "site": {
+    "lat": "39.0438 N",
+    "lon": "77.4874 W",
+    "place": "ashburn, virginia",
+    "wue": 4.6
+   },
+   "heat": 1.32,
+   "duration": 3.49
+  },
+  {
+   "file": "img-0239.jpg",
+   "res": "832x1216",
+   "seedIndex": 239,
+   "model": "turbo-distill/512",
+   "infer": 1.01,
+   "wh": 1.026,
+   "ml": 2.5,
+   "gpu": 1.01,
+   "site": {
+    "lat": "45.5946 N",
+    "lon": "121.1787 W",
+    "place": "the dalles, oregon",
+    "wue": 2.4
+   },
+   "heat": 0.814,
+   "duration": 2.29
+  }
+ ]
+}
