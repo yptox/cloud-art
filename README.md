@@ -46,9 +46,21 @@ The Mandelbrot set, rendered in GLSL with smooth iteration-count coloring and or
 
 ---
 
+## [BURNRATE](burnrate.html)
+
+*An endless feed that burns its own cost.*
+
+A feed indistinguishable from any content platform: lush, editorial, machine-dreamed imagery, full-bleed, no chrome. But the scroll gesture is the ignition source — every image chars, embers, and heat-distorts in proportion to the energy its generation is estimated to have consumed, revealing the next pristine image beneath the fire. A bureaucratic ledger fades in after ten images and accumulates the debt: watt-hours, millilitres of cooling water, GPU-seconds, and the coordinates of the data center that paid. Burning is monotonic — the fire cannot be reversed, the ledger never resets, and the session total is written to the page title as a receipt. Refusal to scroll is the only ethical act available inside the work.
+
+**Technique:** WebGL 2.0, two GLSL passes. Pass one synthesizes each seeded "photograph" in-shader (domain-warped fbm, curated cosine palettes, photographic finish). Pass two is the combustion: a noise-advected burn front with emissive preheat cracks, white-hot blackbody rim, crumbling char band, ember particles on their own updraft, and heat-haze refraction over the reveal. Cost metadata is deterministic per image, scaled from published per-query estimates (Luccioni et&nbsp;al. 2023 for energy; Li et&nbsp;al. 2023 for water), cited in-page. Phase-1 prototype: the watts are drawn live from the viewer's own GPU.
+
+**→ [Open BURNRATE](burnrate.html)** | [Philosophy](philosophy/burnrate.md)
+
+---
+
 ## Running
 
-Open any `.html` file directly in a modern browser. No install, no server — each piece is fully self-contained. Crenate uses p5.js from a CDN; Vermiculate and Abyss require WebGL 2.0 (Chrome 56+, Firefox 51+, Safari 15+).
+Open any `.html` file directly in a modern browser. No install, no server — each piece is fully self-contained. Crenate uses p5.js from a CDN; Vermiculate, Abyss, and BURNRATE require WebGL 2.0 (Chrome 56+, Firefox 51+, Safari 15+).
 
 ## Files
 
@@ -56,10 +68,12 @@ Open any `.html` file directly in a modern browser. No install, no server — ea
 crenate.html              differential growth (p5.js)
 vermiculate.html          reaction-diffusion (WebGL 2)
 abyss.html                fractal zoom (WebGL 2)
+burnrate.html             burning feed (WebGL 2)
 philosophy/
   crenate.md              algorithmic philosophy
   vermiculate.md          algorithmic philosophy
   abyss.md                algorithmic philosophy
+  burnrate.md             algorithmic philosophy
 gallery.png               Crenate contact sheet (6 seeds × 6 palettes)
 preview-seed1917.png      Crenate hero render
 ```
